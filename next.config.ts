@@ -1,7 +1,8 @@
 import type { NextConfig } from 'next'
+import { env } from './src/config/env'
+import { apiRewrites } from './src/config/rewrites'
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
@@ -11,6 +12,9 @@ const nextConfig: NextConfig = {
         as: '*.css',
       },
     },
+  },
+  async rewrites() {
+    return apiRewrites(env.API_URL)
   },
 }
 
