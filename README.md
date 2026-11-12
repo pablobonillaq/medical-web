@@ -112,10 +112,16 @@ src/
 │   ├── layout.tsx         # root layout: language, fonts, metadata, theme script
 │   └── page.tsx           # home page
 ├── components/
-│   └── theme-switcher.tsx # light, dark or system, as native radio buttons
+│   ├── theme-switcher.tsx # light, dark or system, as native radio buttons
+│   └── ui/                # component library
+│       ├── button.tsx     # variants, sizes and an accessible loading state
+│       ├── skip-link.tsx  # "skip to main content", the first stop of the keyboard
+│       └── visually-hidden.tsx # text only for screen readers
 ├── config/
 │   ├── env.ts             # environment variables validated with Zod
 │   └── rewrites.ts        # forwards /api/* to the Express API
+├── lib/
+│   └── cn.ts              # joins classes and resolves Tailwind conflicts
 └── theme/
     ├── theme.ts           # read, save and apply the theme, and the script that runs before paint
     └── use-theme.ts       # React hook, kept in sync across tabs

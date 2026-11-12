@@ -32,7 +32,12 @@ describe('RootLayout', () => {
     expect([...document.documentElement.classList]).toEqual(
       expect.arrayContaining(['font-geist-sans', 'font-geist-mono']),
     )
-    expect(document.body.textContent).toBe('Contenido')
+
+    expect(document.body.lastElementChild?.textContent).toBe('Contenido')
+  })
+
+  it('starts the body with the link that skips to the main content', () => {
+    expect(renderDocument().body.firstElementChild).toHaveProperty('hash', '#main-content')
   })
 
   it('names every page after the clinic', () => {

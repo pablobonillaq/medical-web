@@ -112,10 +112,16 @@ src/
 │   ├── layout.tsx         # layout raíz: idioma, fuentes, metadatos, script del tema
 │   └── page.tsx           # página de inicio
 ├── components/
-│   └── theme-switcher.tsx # claro, oscuro o sistema, con botones de radio nativos
+│   ├── theme-switcher.tsx # claro, oscuro o sistema, con botones de radio nativos
+│   └── ui/                # librería de componentes
+│       ├── button.tsx     # variantes, tamaños y un estado de carga accesible
+│       ├── skip-link.tsx  # "saltar al contenido principal", la primera parada del teclado
+│       └── visually-hidden.tsx # texto solo para lectores de pantalla
 ├── config/
 │   ├── env.ts             # variables de entorno validadas con Zod
 │   └── rewrites.ts        # reenvía /api/* a la API de Express
+├── lib/
+│   └── cn.ts              # une clases y resuelve los choques de Tailwind
 └── theme/
     ├── theme.ts           # leer, guardar y aplicar el tema, y el script que corre antes de pintar
     └── use-theme.ts       # hook de React, sincronizado entre pestañas
