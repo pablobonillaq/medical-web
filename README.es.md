@@ -8,7 +8,7 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fase 1 (configuración base) completada; Fase 2 (sistema de diseño) en curso.
+> **Estado:** en desarrollo. Fases 1 (configuración base) y 2 (sistema de diseño) completadas; sigue la Fase 3 (idiomas y estructura).
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
@@ -125,7 +125,7 @@ src/
 ├── app/                   # rutas (App Router)
 │   ├── globals.css        # Tailwind y tokens de diseño (colores con light-dark())
 │   ├── globals.test.ts    # revisa el contraste WCAG de cada par de colores, en los dos temas
-│   ├── layout.tsx         # layout raíz: idioma, fuentes, metadatos, script del tema
+│   ├── layout.tsx         # layout raíz: idioma, fuentes, metadatos, script del tema, avisos
 │   └── page.tsx           # página de inicio
 ├── components/
 │   ├── theme-switcher.tsx # claro, oscuro o sistema, con botones de radio nativos
@@ -135,12 +135,15 @@ src/
 │       ├── button.tsx     # variantes, tamaños y un estado de carga accesible
 │       ├── card.tsx       # tarjeta con un título cuyo nivel de encabezado se ajusta a la página
 │       ├── checkbox.tsx   # casilla cuyo texto también forma parte del área de clic
+│       ├── dialog.tsx     # <dialog> modal nativo: encierra el foco, Escape, devuelve el foco
 │       ├── field.tsx      # etiqueta, ayuda y error ligados a cada control (ids, aria-describedby)
 │       ├── input.tsx      # campo de texto
 │       ├── select.tsx     # lista de opciones nativa
 │       ├── skeleton.tsx   # marcador mientras carga el contenido
 │       ├── table.tsx      # tabla de datos nombrada por su título, desplazable con el teclado
+│       ├── tabs.tsx       # pestañas WAI-ARIA: flechas, Inicio y Fin
 │       ├── textarea.tsx   # texto de varias líneas
+│       ├── toast.tsx      # avisos breves anunciados por regiones en vivo; los errores esperan a que se cierren
 │       ├── skip-link.tsx  # "saltar al contenido principal", la primera parada del teclado
 │       └── visually-hidden.tsx # texto solo para lectores de pantalla
 ├── config/
@@ -169,7 +172,7 @@ Están escritas en inglés, como el código.
 ## Roadmap
 
 1. ~~Configuración base: Next.js, Prettier, Vitest con 100 % de cobertura, CI y SonarQube, conexión con la API~~ ✅
-2. Sistema de diseño: tokens, temas claro y oscuro, librería de componentes, Storybook — en curso
+2. ~~Sistema de diseño: tokens, temas claro y oscuro, librería de componentes, Storybook~~ ✅
 3. Idiomas y estructura: español e inglés, layout y navegación por rol, Playwright con axe, Lighthouse CI
 4. Capa de datos: store de Redux Toolkit, cliente de la API, thunks, sagas y MSW
 5. Autenticación: inicio de sesión, registro, cierre de sesión, rutas protegidas, vencimiento de sesión

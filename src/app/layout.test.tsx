@@ -33,7 +33,14 @@ describe('RootLayout', () => {
       expect.arrayContaining(['font-geist-sans', 'font-geist-mono']),
     )
 
-    expect(document.body.lastElementChild?.textContent).toBe('Contenido')
+    expect(document.body.children[1]?.textContent).toBe('Contenido')
+  })
+
+  it('keeps the live regions for toasts on every page', () => {
+    const { body } = renderDocument()
+
+    expect(body.querySelector('[role="status"]')).not.toBeNull()
+    expect(body.querySelector('[role="alert"]')).not.toBeNull()
   })
 
   it('starts the body with the link that skips to the main content', () => {

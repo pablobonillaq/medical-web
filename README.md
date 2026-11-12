@@ -8,7 +8,7 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phase 1 (base setup) completed; Phase 2 (design system) in progress.
+> **Status:** in development. Phases 1 (base setup) and 2 (design system) completed; Phase 3 (languages and app shell) next.
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
@@ -125,7 +125,7 @@ src/
 ├── app/                   # routes (App Router)
 │   ├── globals.css        # Tailwind and design tokens (light-dark() colors)
 │   ├── globals.test.ts    # checks the WCAG contrast of every color pair, in both themes
-│   ├── layout.tsx         # root layout: language, fonts, metadata, theme script
+│   ├── layout.tsx         # root layout: language, fonts, metadata, theme script, toasts
 │   └── page.tsx           # home page
 ├── components/
 │   ├── theme-switcher.tsx # light, dark or system, as native radio buttons
@@ -135,12 +135,15 @@ src/
 │       ├── button.tsx     # variants, sizes and an accessible loading state
 │       ├── card.tsx       # card with a title whose heading level fits the page
 │       ├── checkbox.tsx   # checkbox whose text is also part of the target
+│       ├── dialog.tsx     # native modal <dialog>: traps the focus, Escape, returns the focus
 │       ├── field.tsx      # label, hint and error tied to each control (ids, aria-describedby)
 │       ├── input.tsx      # text field
 │       ├── select.tsx     # native list of options
 │       ├── skeleton.tsx   # placeholder while content loads
 │       ├── table.tsx      # data table named by its caption, scrollable with the keyboard
+│       ├── tabs.tsx       # WAI-ARIA tabs: arrow keys, Home and End
 │       ├── textarea.tsx   # text of several lines
+│       ├── toast.tsx      # short messages announced by live regions; errors stay until closed
 │       ├── skip-link.tsx  # "skip to main content", the first stop of the keyboard
 │       └── visually-hidden.tsx # text only for screen readers
 ├── config/
@@ -167,7 +170,7 @@ vitest.config.mts          # tests and the 100% coverage threshold
 ## Roadmap
 
 1. ~~Base setup: Next.js, Prettier, Vitest with 100% coverage, CI and SonarQube, connection to the API~~ ✅
-2. Design system: tokens, light and dark themes, component library, Storybook — in progress
+2. ~~Design system: tokens, light and dark themes, component library, Storybook~~ ✅
 3. Languages and app shell: Spanish and English, layout and navigation by role, Playwright with axe, Lighthouse CI
 4. Data layer: Redux Toolkit store, API client, thunks, sagas and MSW
 5. Authentication: sign in, sign-up, sign-out, protected routes, session expiry
