@@ -130,11 +130,16 @@ src/
 ├── components/
 │   ├── theme-switcher.tsx # claro, oscuro o sistema, con botones de radio nativos
 │   └── ui/                # librería de componentes
+│       ├── alert.tsx      # mensajes de información, éxito, aviso y error, anunciados cuando hace falta
+│       ├── badge.tsx      # etiquetas cortas, como el estado de una cita
 │       ├── button.tsx     # variantes, tamaños y un estado de carga accesible
+│       ├── card.tsx       # tarjeta con un título cuyo nivel de encabezado se ajusta a la página
 │       ├── checkbox.tsx   # casilla cuyo texto también forma parte del área de clic
 │       ├── field.tsx      # etiqueta, ayuda y error ligados a cada control (ids, aria-describedby)
 │       ├── input.tsx      # campo de texto
 │       ├── select.tsx     # lista de opciones nativa
+│       ├── skeleton.tsx   # marcador mientras carga el contenido
+│       ├── table.tsx      # tabla de datos nombrada por su título, desplazable con el teclado
 │       ├── textarea.tsx   # texto de varias líneas
 │       ├── skip-link.tsx  # "saltar al contenido principal", la primera parada del teclado
 │       └── visually-hidden.tsx # texto solo para lectores de pantalla
