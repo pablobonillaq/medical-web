@@ -34,7 +34,8 @@ Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agen
 - **Pruebas:** Vitest, Testing Library y cobertura con V8
 - **Calidad de código:** ESLint y Prettier
 - **CI:** GitHub Actions y SonarQube Cloud
-- **Por agregar:** Redux Toolkit con thunks y sagas, Storybook, Playwright con axe, Lighthouse CI
+- **Librería de componentes:** class-variance-authority y tailwind-merge, documentada en Storybook con revisiones de accesibilidad (axe)
+- **Por agregar:** Redux Toolkit con thunks y sagas, Playwright con axe, Lighthouse CI
 
 ## Requisitos
 
@@ -66,18 +67,20 @@ Las variables se validan con Zod al iniciar la app (`src/config/env.ts`): un val
 
 ## Scripts
 
-| Comando                 | Descripción                                                        |
-| ----------------------- | ------------------------------------------------------------------ |
-| `npm run dev`           | Inicia el servidor de desarrollo en el puerto 3001                 |
-| `npm run build`         | Genera el build de producción                                      |
-| `npm start`             | Sirve el build de producción en el puerto 3001                     |
-| `npm run typecheck`     | Genera los tipos de las rutas y revisa los tipos                   |
-| `npm run lint`          | Revisa el código con ESLint                                        |
-| `npm run format`        | Formatea el código con Prettier (y ordena las clases de Tailwind)  |
-| `npm run check`         | Ejecuta typecheck, lint, la revisión de formato y las pruebas      |
-| `npm test`              | Ejecuta las pruebas                                                |
-| `npm run test:watch`    | Ejecuta las pruebas en modo watch                                  |
-| `npm run test:coverage` | Ejecuta las pruebas y genera el reporte de cobertura (`coverage/`) |
+| Comando                   | Descripción                                                        |
+| ------------------------- | ------------------------------------------------------------------ |
+| `npm run dev`             | Inicia el servidor de desarrollo en el puerto 3001                 |
+| `npm run build`           | Genera el build de producción                                      |
+| `npm start`               | Sirve el build de producción en el puerto 3001                     |
+| `npm run typecheck`       | Genera los tipos de las rutas y revisa los tipos                   |
+| `npm run lint`            | Revisa el código con ESLint                                        |
+| `npm run format`          | Formatea el código con Prettier (y ordena las clases de Tailwind)  |
+| `npm run check`           | Ejecuta typecheck, lint, la revisión de formato y las pruebas      |
+| `npm test`                | Ejecuta las pruebas                                                |
+| `npm run test:watch`      | Ejecuta las pruebas en modo watch                                  |
+| `npm run test:coverage`   | Ejecuta las pruebas y genera el reporte de cobertura (`coverage/`) |
+| `npm run storybook`       | Abre Storybook en el puerto 6006                                   |
+| `npm run build-storybook` | Genera el sitio estático de Storybook (`storybook-static/`)        |
 
 ## Pruebas
 
@@ -88,6 +91,16 @@ La cobertura se mantiene en **100 %** de líneas, ramas, funciones y sentencias,
 ### Integración continua
 
 En cada push a `master` y en cada pull request, [GitHub Actions](.github/workflows/ci.yml) ejecuta la revisión de tipos, ESLint, la revisión de Prettier, las pruebas con cobertura y el build de producción. Después envía el reporte de cobertura a **SonarQube Cloud**, que evalúa el Quality Gate.
+
+## Librería de componentes
+
+Los componentes están en `src/components/ui/`. Cada uno tiene variantes tipadas y sus historias en Storybook, con un selector de tema claro y oscuro en la barra y un panel de accesibilidad que ejecuta axe en cada historia.
+
+**Storybook:** https://pablobonillaq.github.io/medical-web/ (se publica en cada push a `master`).
+
+```bash
+npm run storybook   # http://localhost:6006
+```
 
 ## Accesibilidad
 
@@ -102,7 +115,10 @@ La meta es **WCAG 2.2 nivel AA**. Los tokens de color tienen pruebas: cada color
 
 ```
 .github/
-└── workflows/ci.yml       # CI: tipos, lint, formato, pruebas, build y SonarQube
+└── workflows/
+    ├── ci.yml             # CI: tipos, lint, formato, pruebas, build, Storybook y SonarQube
+    └── storybook.yml      # publica Storybook en GitHub Pages
+.storybook/                # Storybook: Vite con Tailwind, selector de tema, revisiones de accesibilidad
 docs/
 └── adr/                   # registros de decisiones de arquitectura
 src/

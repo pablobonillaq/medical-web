@@ -26,8 +26,9 @@
   --color-warning: light-dark(#a16207, #facc15);
   --color-ring: light-dark(#0f766e, #2dd4bf);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* The fallbacks apply where next/font does not run, such as Storybook */
+  --font-sans: var(--font-geist-sans, ui-sans-serif, system-ui, sans-serif);
+  --font-mono: var(--font-geist-mono, ui-monospace, monospace);
 }
 
 :root {

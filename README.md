@@ -34,7 +34,8 @@ Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appo
 - **Testing:** Vitest, Testing Library and V8 coverage
 - **Code quality:** ESLint and Prettier
 - **CI:** GitHub Actions and SonarQube Cloud
-- **Coming soon:** Redux Toolkit with thunks and sagas, Storybook, Playwright with axe, Lighthouse CI
+- **Component library:** class-variance-authority and tailwind-merge, documented in Storybook with accessibility checks (axe)
+- **Coming soon:** Redux Toolkit with thunks and sagas, Playwright with axe, Lighthouse CI
 
 ## Requirements
 
@@ -66,18 +67,20 @@ Variables are validated with Zod when the app starts (`src/config/env.ts`): a wr
 
 ## Scripts
 
-| Command                 | Description                                                    |
-| ----------------------- | -------------------------------------------------------------- |
-| `npm run dev`           | Starts the development server on port 3001                     |
-| `npm run build`         | Builds the app for production                                  |
-| `npm start`             | Serves the production build on port 3001                       |
-| `npm run typecheck`     | Generates the route types and type-checks the code             |
-| `npm run lint`          | Lints the code with ESLint                                     |
-| `npm run format`        | Formats the code with Prettier (and sorts Tailwind classes)    |
-| `npm run check`         | Runs typecheck, lint, the format check and the tests           |
-| `npm test`              | Runs the tests                                                 |
-| `npm run test:watch`    | Runs the tests in watch mode                                   |
-| `npm run test:coverage` | Runs the tests and generates the coverage report (`coverage/`) |
+| Command                   | Description                                                    |
+| ------------------------- | -------------------------------------------------------------- |
+| `npm run dev`             | Starts the development server on port 3001                     |
+| `npm run build`           | Builds the app for production                                  |
+| `npm start`               | Serves the production build on port 3001                       |
+| `npm run typecheck`       | Generates the route types and type-checks the code             |
+| `npm run lint`            | Lints the code with ESLint                                     |
+| `npm run format`          | Formats the code with Prettier (and sorts Tailwind classes)    |
+| `npm run check`           | Runs typecheck, lint, the format check and the tests           |
+| `npm test`                | Runs the tests                                                 |
+| `npm run test:watch`      | Runs the tests in watch mode                                   |
+| `npm run test:coverage`   | Runs the tests and generates the coverage report (`coverage/`) |
+| `npm run storybook`       | Opens Storybook on port 6006                                   |
+| `npm run build-storybook` | Builds the static Storybook site (`storybook-static/`)         |
 
 ## Testing
 
@@ -88,6 +91,16 @@ Coverage is kept at **100%** of lines, branches, functions and statements, and `
 ### Continuous integration
 
 On every push to `master` and every pull request, [GitHub Actions](.github/workflows/ci.yml) runs the type check, ESLint, the Prettier check, the tests with coverage and the production build. The coverage report is then sent to **SonarQube Cloud**, which checks the Quality Gate.
+
+## Component library
+
+The components live in `src/components/ui/`. Each one has typed variants and its stories in Storybook, with a light and dark theme switch in the toolbar and an Accessibility panel that runs axe on every story.
+
+**Storybook:** https://pablobonillaq.github.io/medical-web/ (published on every push to `master`).
+
+```bash
+npm run storybook   # http://localhost:6006
+```
 
 ## Accessibility
 
@@ -102,7 +115,10 @@ The goal is **WCAG 2.2 level AA**. The color tokens are tested: every text color
 
 ```
 .github/
-└── workflows/ci.yml       # CI: types, lint, format, tests, build and SonarQube
+└── workflows/
+    ├── ci.yml             # CI: types, lint, format, tests, build, Storybook and SonarQube
+    └── storybook.yml      # publishes Storybook to GitHub Pages
+.storybook/                # Storybook: Vite with Tailwind, theme toolbar, accessibility checks
 docs/
 └── adr/                   # architecture decision records
 src/
