@@ -131,6 +131,11 @@ src/
 │   ├── theme-switcher.tsx # claro, oscuro o sistema, con botones de radio nativos
 │   └── ui/                # librería de componentes
 │       ├── button.tsx     # variantes, tamaños y un estado de carga accesible
+│       ├── checkbox.tsx   # casilla cuyo texto también forma parte del área de clic
+│       ├── field.tsx      # etiqueta, ayuda y error ligados a cada control (ids, aria-describedby)
+│       ├── input.tsx      # campo de texto
+│       ├── select.tsx     # lista de opciones nativa
+│       ├── textarea.tsx   # texto de varias líneas
 │       ├── skip-link.tsx  # "saltar al contenido principal", la primera parada del teclado
 │       └── visually-hidden.tsx # texto solo para lectores de pantalla
 ├── config/
