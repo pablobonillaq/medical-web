@@ -8,12 +8,12 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fase 1 (configuración base) en curso.
+> **Estado:** en desarrollo. Fase 1 (configuración base) completada; Fase 2 (sistema de diseño) en curso.
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
 
-- [ ] Tema claro, oscuro o el del sistema, sin parpadeo al cargar
+- [x] Tema claro, oscuro o el del sistema, sin parpadeo al cargar
 - [ ] Librería de componentes con variantes tipadas, documentada en Storybook
 - [ ] Español e inglés (`/es`, `/en`)
 - [ ] Inicio de sesión, registro de pacientes y cierre de sesión; rutas protegidas por rol desde el servidor
@@ -91,7 +91,7 @@ En cada push a `master` y en cada pull request, [GitHub Actions](.github/workflo
 
 ## Accesibilidad
 
-La meta es **WCAG 2.2 nivel AA**. Cada funcionalidad se considera terminada solo cuando:
+La meta es **WCAG 2.2 nivel AA**. Los tokens de color tienen pruebas: cada color de texto tiene al menos 4.5:1 de contraste y cada borde y anillo de foco 3:1, en los dos temas (`src/app/globals.test.ts`). Cada funcionalidad se considera terminada solo cuando:
 
 - se puede usar solo con el teclado, con el foco visible;
 - usa HTML semántico (regiones, encabezados, etiquetas) y anuncia los cambios con `aria-live` donde hace falta;
@@ -107,12 +107,18 @@ docs/
 └── adr/                   # registros de decisiones de arquitectura
 src/
 ├── app/                   # rutas (App Router)
-│   ├── globals.css        # Tailwind y tokens de diseño
-│   ├── layout.tsx         # layout raíz: idioma, fuentes, metadatos
+│   ├── globals.css        # Tailwind y tokens de diseño (colores con light-dark())
+│   ├── globals.test.ts    # revisa el contraste WCAG de cada par de colores, en los dos temas
+│   ├── layout.tsx         # layout raíz: idioma, fuentes, metadatos, script del tema
 │   └── page.tsx           # página de inicio
-└── config/
-    ├── env.ts             # variables de entorno validadas con Zod
-    └── rewrites.ts        # reenvía /api/* a la API de Express
+├── components/
+│   └── theme-switcher.tsx # claro, oscuro o sistema, con botones de radio nativos
+├── config/
+│   ├── env.ts             # variables de entorno validadas con Zod
+│   └── rewrites.ts        # reenvía /api/* a la API de Express
+└── theme/
+    ├── theme.ts           # leer, guardar y aplicar el tema, y el script que corre antes de pintar
+    └── use-theme.ts       # hook de React, sincronizado entre pestañas
 next.config.ts             # configuración de Next.js (Cache Components, rewrites)
 vitest.config.mts          # pruebas y el umbral de 100 % de cobertura
 ```
@@ -130,8 +136,8 @@ Están escritas en inglés, como el código.
 
 ## Roadmap
 
-1. Configuración base: Next.js, Prettier, Vitest con 100 % de cobertura, CI y SonarQube, conexión con la API — en curso
-2. Sistema de diseño: tokens, temas claro y oscuro, librería de componentes, Storybook
+1. ~~Configuración base: Next.js, Prettier, Vitest con 100 % de cobertura, CI y SonarQube, conexión con la API~~ ✅
+2. Sistema de diseño: tokens, temas claro y oscuro, librería de componentes, Storybook — en curso
 3. Idiomas y estructura: español e inglés, layout y navegación por rol, Playwright con axe, Lighthouse CI
 4. Capa de datos: store de Redux Toolkit, cliente de la API, thunks, sagas y MSW
 5. Autenticación: inicio de sesión, registro, cierre de sesión, rutas protegidas, vencimiento de sesión

@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
+import { themeScript } from '@/theme/theme'
 import RootLayout, { metadata } from './layout'
 
 // next/font only works inside the Next.js compiler: in tests each font gives back its CSS variable
@@ -36,5 +37,9 @@ describe('RootLayout', () => {
 
   it('names every page after the clinic', () => {
     expect(metadata.title).toEqual({ default: 'Clínica', template: '%s | Clínica' })
+  })
+
+  it('applies the saved theme in <head>, before the page is painted', () => {
+    expect(renderDocument().head.querySelector('script')?.textContent).toBe(themeScript)
   })
 })

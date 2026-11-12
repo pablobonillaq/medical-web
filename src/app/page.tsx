@@ -1,10 +1,13 @@
+import { ThemeSwitcher } from '@/components/theme-switcher'
+
 export default function HomePage() {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-4 px-6 py-24">
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-6 px-6 py-24">
       <h1 className="text-3xl font-semibold tracking-tight">Clínica</h1>
-      <p className="text-lg">
+      <p className="text-lg text-muted-foreground">
         Agenda tus citas, consulta tu expediente y escribe a la recepción desde un solo lugar.
       </p>
+      <ThemeSwitcher />
     </main>
   )
 }

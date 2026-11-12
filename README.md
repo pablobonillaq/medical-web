@@ -8,12 +8,12 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phase 1 (base setup) in progress.
+> **Status:** in development. Phase 1 (base setup) completed; Phase 2 (design system) in progress.
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
 
-- [ ] Light, dark or system theme, with no flash on load
+- [x] Light, dark or system theme, with no flash on load
 - [ ] Component library with typed variants, documented in Storybook
 - [ ] Spanish and English (`/es`, `/en`)
 - [ ] Sign in, patient sign-up and sign-out; routes protected by role on the server
@@ -91,7 +91,7 @@ On every push to `master` and every pull request, [GitHub Actions](.github/workf
 
 ## Accessibility
 
-The goal is **WCAG 2.2 level AA**. Every feature is done only when:
+The goal is **WCAG 2.2 level AA**. The color tokens are tested: every text color has at least 4.5:1 contrast and every border and focus ring 3:1, in both themes (`src/app/globals.test.ts`). Every feature is done only when:
 
 - it can be used with the keyboard alone, with a visible focus;
 - it uses semantic HTML (landmarks, headings, labels) and announces changes with `aria-live` where needed;
@@ -107,12 +107,18 @@ docs/
 └── adr/                   # architecture decision records
 src/
 ├── app/                   # routes (App Router)
-│   ├── globals.css        # Tailwind and design tokens
-│   ├── layout.tsx         # root layout: language, fonts, metadata
+│   ├── globals.css        # Tailwind and design tokens (light-dark() colors)
+│   ├── globals.test.ts    # checks the WCAG contrast of every color pair, in both themes
+│   ├── layout.tsx         # root layout: language, fonts, metadata, theme script
 │   └── page.tsx           # home page
-└── config/
-    ├── env.ts             # environment variables validated with Zod
-    └── rewrites.ts        # forwards /api/* to the Express API
+├── components/
+│   └── theme-switcher.tsx # light, dark or system, as native radio buttons
+├── config/
+│   ├── env.ts             # environment variables validated with Zod
+│   └── rewrites.ts        # forwards /api/* to the Express API
+└── theme/
+    ├── theme.ts           # read, save and apply the theme, and the script that runs before paint
+    └── use-theme.ts       # React hook, kept in sync across tabs
 next.config.ts             # Next.js configuration (Cache Components, rewrites)
 vitest.config.mts          # tests and the 100% coverage threshold
 ```
@@ -128,8 +134,8 @@ vitest.config.mts          # tests and the 100% coverage threshold
 
 ## Roadmap
 
-1. Base setup: Next.js, Prettier, Vitest with 100% coverage, CI and SonarQube, connection to the API — in progress
-2. Design system: tokens, light and dark themes, component library, Storybook
+1. ~~Base setup: Next.js, Prettier, Vitest with 100% coverage, CI and SonarQube, connection to the API~~ ✅
+2. Design system: tokens, light and dark themes, component library, Storybook — in progress
 3. Languages and app shell: Spanish and English, layout and navigation by role, Playwright with axe, Lighthouse CI
 4. Data layer: Redux Toolkit store, API client, thunks, sagas and MSW
 5. Authentication: sign in, sign-up, sign-out, protected routes, session expiry
