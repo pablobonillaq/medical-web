@@ -3,26 +3,18 @@ import { lang } from 'next/root-params'
 import { describe, expect, it, vi } from 'vitest'
 import HomePage from './page'
 
+// next/root-params only works inside Next.js: in tests the language of the URL is set by hand
 vi.mock('next/root-params', () => ({ lang: vi.fn(async () => 'es') }))
-vi.mock('next/navigation', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('next/navigation')>()),
-  usePathname: () => '/es',
-}))
 
 describe('HomePage', () => {
-  it('has a main region, the skip link target, with one level 1 heading', async () => {
+  it('has one level 1 heading, in the language of the URL', async () => {
     vi.mocked(lang).mockResolvedValue('es')
-    render(await HomePage())
-
-    expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content')
+    const { unmount } = render(await HomePage())
     expect(screen.getByRole('heading', { level: 1, name: 'Clínica' })).toBeInTheDocument()
-  })
+    unmount()
 
-  it('lets the visitor choose the theme and the language', async () => {
-    vi.mocked(lang).mockResolvedValue('es')
+    vi.mocked(lang).mockResolvedValue('en')
     render(await HomePage())
-
-    expect(screen.getByRole('group', { name: 'Tema' })).toBeInTheDocument()
-    expect(screen.getByRole('navigation', { name: 'Idioma' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Clinic' })).toBeInTheDocument()
   })
 })

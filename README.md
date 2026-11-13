@@ -118,7 +118,7 @@ The texts live in typed dictionaries (`src/i18n/dictionaries/`). Spanish is the 
 The goal is **WCAG 2.2 level AA**. The color tokens are tested: every text color has at least 4.5:1 contrast and every border and focus ring 3:1, in both themes (`src/app/globals.test.ts`). Every feature is done only when:
 
 - it can be used with the keyboard alone, with a visible focus;
-- it uses semantic HTML (landmarks, headings, labels) and announces changes with `aria-live` where needed;
+- it uses semantic HTML (landmarks, headings, labels; every page has a header, a `main` region and a footer) and announces changes with `aria-live` where needed;
 - its contrast passes in both themes, and it respects `prefers-reduced-motion`;
 - its automated accessibility checks (axe) pass.
 
@@ -137,10 +137,15 @@ src/
 │   ├── globals.css        # Tailwind and design tokens (light-dark() colors)
 │   ├── globals.test.ts    # checks the WCAG contrast of every color pair, in both themes
 │   └── [lang]/            # every page, under /es or /en
-│       ├── layout.tsx     # root layout: <html lang>, fonts, metadata, theme script, toasts
+│       ├── [...rest]/     # any address that matches no page: a 404
+│       ├── layout.tsx     # root layout: <html lang>, header, main region, footer, toasts
+│       ├── not-found.tsx  # 404 page, inside the layout and in the language of the URL
 │       └── page.tsx       # home page
 ├── components/
+│   ├── inline-script.tsx  # script that runs before the first paint, without React's warning
 │   ├── language-switcher.tsx # links to the same page in each language
+│   ├── site-footer.tsx    # footer of every page
+│   ├── site-header.tsx    # banner of every page: link home, theme and language
 │   ├── theme-switcher.tsx # light, dark or system, as native radio buttons
 │   └── ui/                # component library
 │       ├── alert.tsx      # info, success, warning and error messages, announced when needed

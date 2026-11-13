@@ -118,7 +118,7 @@ Los textos están en diccionarios tipados (`src/i18n/dictionaries/`). El españo
 La meta es **WCAG 2.2 nivel AA**. Los tokens de color tienen pruebas: cada color de texto tiene al menos 4.5:1 de contraste y cada borde y anillo de foco 3:1, en los dos temas (`src/app/globals.test.ts`). Cada funcionalidad se considera terminada solo cuando:
 
 - se puede usar solo con el teclado, con el foco visible;
-- usa HTML semántico (regiones, encabezados, etiquetas) y anuncia los cambios con `aria-live` donde hace falta;
+- usa HTML semántico (regiones, encabezados, etiquetas; cada página tiene encabezado, región `main` y pie) y anuncia los cambios con `aria-live` donde hace falta;
 - su contraste pasa en los dos temas y respeta `prefers-reduced-motion`;
 - pasan sus revisiones automáticas de accesibilidad (axe).
 
@@ -137,10 +137,15 @@ src/
 │   ├── globals.css        # Tailwind y tokens de diseño (colores con light-dark())
 │   ├── globals.test.ts    # revisa el contraste WCAG de cada par de colores, en los dos temas
 │   └── [lang]/            # todas las páginas, bajo /es o /en
-│       ├── layout.tsx     # layout raíz: <html lang>, fuentes, metadatos, script del tema, avisos
+│       ├── [...rest]/     # cualquier dirección que no sea una página: un 404
+│       ├── layout.tsx     # layout raíz: <html lang>, encabezado, región principal, pie, avisos
+│       ├── not-found.tsx  # página 404, dentro del layout y en el idioma de la URL
 │       └── page.tsx       # página de inicio
 ├── components/
+│   ├── inline-script.tsx  # script que corre antes del primer pintado, sin el aviso de React
 │   ├── language-switcher.tsx # enlaces a la misma página en cada idioma
+│   ├── site-footer.tsx    # pie de cada página
+│   ├── site-header.tsx    # encabezado de cada página: enlace al inicio, tema e idioma
 │   ├── theme-switcher.tsx # claro, oscuro o sistema, con botones de radio nativos
 │   └── ui/                # librería de componentes
 │       ├── alert.tsx      # mensajes de información, éxito, aviso y error, anunciados cuando hace falta

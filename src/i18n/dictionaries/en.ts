@@ -18,6 +18,14 @@ export const en: Dictionary = {
   language: {
     label: 'Language',
   },
+  footer: {
+    note: 'Portfolio project. All data is fictitious.',
+  },
+  notFound: {
+    title: "We couldn't find this page",
+    description: 'The address may be misspelled, or the page may no longer exist.',
+    home: 'Back to home',
+  },
   home: {
     title: 'Clinic',
     intro:

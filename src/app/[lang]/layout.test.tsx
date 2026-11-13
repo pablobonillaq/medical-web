@@ -13,6 +13,12 @@ vi.mock('next/font/google', () => ({
 // next/root-params only works inside Next.js: in tests the language of the URL is set by hand
 vi.mock('next/root-params', () => ({ lang: vi.fn(async () => 'es') }))
 
+// Outside Next.js there is no router: the language switcher in the header gets the path by hand
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  usePathname: () => '/es',
+}))
+
 // The root layout is an async Server Component that renders <html>: it is awaited, rendered to a
 // string and parsed as a full document
 const renderDocument = async (locale = 'es') => {
@@ -32,13 +38,26 @@ describe('RootLayout', () => {
     expect((await renderDocument('en')).documentElement.lang).toBe('en')
   })
 
-  it('loads the fonts and renders the page inside the body', async () => {
+  it('loads the fonts', async () => {
     const document = await renderDocument()
 
     expect([...document.documentElement.classList]).toEqual(
       expect.arrayContaining(['font-geist-sans', 'font-geist-mono']),
     )
-    expect(document.body.children[1]?.textContent).toBe('Contenido')
+  })
+
+  it('puts the page between the header and the footer, in the main region', async () => {
+    const { body } = await renderDocument()
+    const [, header, main, footer] = body.children
+
+    expect(header.tagName).toBe('HEADER')
+    expect(header.querySelector('a[href="/es"]')?.textContent).toBe('Clínica')
+    expect(main.tagName).toBe('MAIN')
+    expect(main.id).toBe('main-content')
+    expect(main.getAttribute('tabindex')).toBe('-1')
+    expect(main.textContent).toBe('Contenido')
+    expect(footer.tagName).toBe('FOOTER')
+    expect(footer.textContent).toBe('Proyecto de portafolio. Todos los datos son ficticios.')
   })
 
   it('keeps the live regions for toasts on every page', async () => {

@@ -17,6 +17,14 @@ export const es = {
   language: {
     label: 'Idioma',
   },
+  footer: {
+    note: 'Proyecto de portafolio. Todos los datos son ficticios.',
+  },
+  notFound: {
+    title: 'No encontramos esta página',
+    description: 'Puede que la dirección esté mal escrita o que la página ya no exista.',
+    home: 'Volver al inicio',
+  },
   home: {
     title: 'Clínica',
     intro: 'Agenda tus citas, consulta tu expediente y escribe a la recepción desde un solo lugar.',
