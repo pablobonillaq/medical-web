@@ -102,6 +102,17 @@ describe('Toast', () => {
     expect(alert).toBeEmptyDOMElement()
   })
 
+  it('names the close button with the label it gets', () => {
+    render(
+      <ToastProvider closeLabel="Close notification">
+        <Trigger toast={{ title: 'Appointment booked' }} />
+      </ToastProvider>,
+    )
+    show()
+
+    expect(screen.getByRole('button', { name: 'Close notification' })).toBeInTheDocument()
+  })
+
   it('stacks several messages and closes only the chosen one', () => {
     renderWithToast({ title: 'Guardado' })
     show()

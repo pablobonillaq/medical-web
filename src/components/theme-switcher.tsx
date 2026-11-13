@@ -3,20 +3,17 @@
 import { THEME_PREFERENCES, type ThemePreference } from '@/theme/theme'
 import { useTheme } from '@/theme/use-theme'
 
-const LABELS: Record<ThemePreference, string> = {
-  light: 'Claro',
-  dark: 'Oscuro',
-  system: 'Sistema',
-}
+export type ThemeSwitcherLabels = Record<ThemePreference, string> & { legend: string }
 
 // Native radio buttons: screen readers announce "Tema, Claro, radio button, 1 of 3", and the
-// arrow keys move between the options, with no extra JavaScript
-export function ThemeSwitcher() {
+// arrow keys move between the options, with no extra JavaScript. The texts come from the page,
+// in its language
+export function ThemeSwitcher({ labels }: { labels: ThemeSwitcherLabels }) {
   const [theme, setTheme] = useTheme()
 
   return (
     <fieldset>
-      <legend className="mb-1 text-sm font-medium">Tema</legend>
+      <legend className="mb-1 text-sm font-medium">{labels.legend}</legend>
       <div className="inline-flex gap-1 rounded-lg border border-input bg-surface p-1">
         {THEME_PREFERENCES.map((option) => (
           <label
@@ -33,7 +30,7 @@ export function ThemeSwitcher() {
               }}
               className="sr-only"
             />
-            {LABELS[option]}
+            {labels[option]}
           </label>
         ))}
       </div>

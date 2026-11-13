@@ -8,14 +8,14 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 (configuración base) y 2 (sistema de diseño) completadas; sigue la Fase 3 (idiomas y estructura).
+> **Estado:** en desarrollo. Fases 1 (configuración base) y 2 (sistema de diseño) completadas; Fase 3 (idiomas y estructura) en curso.
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
 
 - [x] Tema claro, oscuro o el del sistema, sin parpadeo al cargar
 - [ ] Librería de componentes con variantes tipadas, documentada en Storybook
-- [ ] Español e inglés (`/es`, `/en`)
+- [x] Español e inglés (`/es`, `/en`), con el idioma elegido según el navegador o la última visita
 - [ ] Inicio de sesión, registro de pacientes y cierre de sesión; rutas protegidas por rol desde el servidor
 - [ ] Páginas públicas: inicio, servicios y médicos
 - [ ] Pacientes: reservar, cancelar, reprogramar y confirmar citas; ver quién abrió su expediente
@@ -30,6 +30,7 @@ Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agen
 
 - **Framework:** Next.js 16 (App Router, Cache Components), React 19, TypeScript
 - **Estilos:** Tailwind CSS 4, con tokens de diseño en variables CSS
+- **Idiomas:** rutas internacionalizadas de Next.js (`app/[lang]`, `next/root-params`, Proxy) y diccionarios tipados, sin librería de i18n
 - **Validación:** Zod
 - **Pruebas:** Vitest, Testing Library y cobertura con V8
 - **Calidad de código:** ESLint y Prettier
@@ -53,7 +54,7 @@ cp .env.example .env   # API_URL apunta a la API en el puerto 3000
 npm run dev
 ```
 
-Abre `http://localhost:3001`. La API se queda en el puerto 3000, así que las dos corren al mismo tiempo.
+Abre `http://localhost:3001`: redirige a `/es` o `/en` (ver [Idiomas](#idiomas)). La API se queda en el puerto 3000, así que las dos corren al mismo tiempo.
 
 El navegador nunca llama a la API directamente: el servidor de Next.js reenvía las peticiones a `/api/...` hacia `API_URL` (por ejemplo, `/api/health` → `http://localhost:3000/health`). Web y API comparten un solo origen, así que no hace falta CORS y la cookie httpOnly de sesión de la API funciona tal cual.
 
@@ -102,6 +103,16 @@ Los componentes están en `src/components/ui/`. Cada uno tiene variantes tipadas
 npm run storybook   # http://localhost:6006
 ```
 
+## Idiomas
+
+Cada página vive bajo `/es` o `/en`, así que cada idioma tiene su propia URL, que se puede compartir e indexar. Una URL sin idioma (`/`, `/citas`) la redirige el Proxy (`src/proxy.ts`), conservando el resto de la ruta y la query:
+
+1. al idioma usado la última vez, guardado en la cookie `locale`;
+2. si no hay, al idioma del navegador (`Accept-Language`);
+3. si no coincide ninguno, a español.
+
+Los textos están en diccionarios tipados (`src/i18n/dictionaries/`). El español es la referencia y el inglés debe tener las mismas claves, lo que revisan TypeScript y una prueba. Se leen en el servidor, así que no agregan JavaScript al navegador; los client components reciben sus textos como props. `<html lang>` sigue a la URL, y el selector de idioma marca el nombre de cada idioma con su propio `lang`, para que los lectores de pantalla lo pronuncien bien.
+
 ## Accesibilidad
 
 La meta es **WCAG 2.2 nivel AA**. Los tokens de color tienen pruebas: cada color de texto tiene al menos 4.5:1 de contraste y cada borde y anillo de foco 3:1, en los dos temas (`src/app/globals.test.ts`). Cada funcionalidad se considera terminada solo cuando:
@@ -125,9 +136,11 @@ src/
 ├── app/                   # rutas (App Router)
 │   ├── globals.css        # Tailwind y tokens de diseño (colores con light-dark())
 │   ├── globals.test.ts    # revisa el contraste WCAG de cada par de colores, en los dos temas
-│   ├── layout.tsx         # layout raíz: idioma, fuentes, metadatos, script del tema, avisos
-│   └── page.tsx           # página de inicio
+│   └── [lang]/            # todas las páginas, bajo /es o /en
+│       ├── layout.tsx     # layout raíz: <html lang>, fuentes, metadatos, script del tema, avisos
+│       └── page.tsx       # página de inicio
 ├── components/
+│   ├── language-switcher.tsx # enlaces a la misma página en cada idioma
 │   ├── theme-switcher.tsx # claro, oscuro o sistema, con botones de radio nativos
 │   └── ui/                # librería de componentes
 │       ├── alert.tsx      # mensajes de información, éxito, aviso y error, anunciados cuando hace falta
@@ -149,11 +162,17 @@ src/
 ├── config/
 │   ├── env.ts             # variables de entorno validadas con Zod
 │   └── rewrites.ts        # reenvía /api/* a la API de Express
+├── i18n/
+│   ├── config.ts          # idiomas disponibles, idioma por defecto y nombre de la cookie
+│   ├── dictionaries/      # textos por idioma (es es la referencia)
+│   ├── dictionaries.ts    # idioma y textos de la página actual, en el servidor
+│   └── negotiate.ts       # elige el idioma con la cookie y Accept-Language
 ├── lib/
 │   └── cn.ts              # une clases y resuelve los choques de Tailwind
 └── theme/
     ├── theme.ts           # leer, guardar y aplicar el tema, y el script que corre antes de pintar
     └── use-theme.ts       # hook de React, sincronizado entre pestañas
+src/proxy.ts               # redirige las URL sin idioma a /es o /en
 next.config.ts             # configuración de Next.js (Cache Components, rewrites)
 vitest.config.mts          # pruebas y el umbral de 100 % de cobertura
 ```
@@ -168,12 +187,13 @@ Están escritas en inglés, como el código.
 | [0002](docs/adr/0002-tailwind-component-library.md) | Librería de componentes con Tailwind y variantes tipadas, sin styled-components |
 | [0003](docs/adr/0003-redux-thunks-and-sagas.md)     | Redux Toolkit: thunks para peticiones, sagas para flujos largos                 |
 | [0004](docs/adr/0004-testing-strategy.md)           | Estrategia de pruebas y 100 % de cobertura                                      |
+| [0005](docs/adr/0005-i18n-without-a-library.md)     | Español e inglés con las rutas de Next.js y diccionarios tipados, sin librería  |
 
 ## Roadmap
 
 1. ~~Configuración base: Next.js, Prettier, Vitest con 100 % de cobertura, CI y SonarQube, conexión con la API~~ ✅
 2. ~~Sistema de diseño: tokens, temas claro y oscuro, librería de componentes, Storybook~~ ✅
-3. Idiomas y estructura: español e inglés, layout y navegación por rol, Playwright con axe, Lighthouse CI
+3. Idiomas y estructura: español e inglés, layout y navegación por rol, Playwright con axe, Lighthouse CI — en curso
 4. Capa de datos: store de Redux Toolkit, cliente de la API, thunks, sagas y MSW
 5. Autenticación: inicio de sesión, registro, cierre de sesión, rutas protegidas, vencimiento de sesión
 6. Páginas públicas: inicio, servicios y médicos

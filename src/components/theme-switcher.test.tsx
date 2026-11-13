@@ -2,10 +2,12 @@ import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it } from 'vitest'
+import { es } from '@/i18n/dictionaries/es'
 import { THEME_STORAGE_KEY } from '@/theme/theme'
 import { ThemeSwitcher } from './theme-switcher'
 
 const root = document.documentElement
+const labels = es.theme
 
 afterEach(() => {
   localStorage.clear()
@@ -22,7 +24,7 @@ const changeInAnotherTab = (key: string, value: string) => {
 
 describe('ThemeSwitcher', () => {
   it('is a group of three options named "Tema", with Sistema chosen by default', () => {
-    render(<ThemeSwitcher />)
+    render(<ThemeSwitcher labels={labels} />)
 
     expect(screen.getByRole('group', { name: 'Tema' })).toBeInTheDocument()
     expect(screen.getAllByRole('radio')).toHaveLength(3)
@@ -32,14 +34,14 @@ describe('ThemeSwitcher', () => {
   it('shows the saved theme', () => {
     localStorage.setItem(THEME_STORAGE_KEY, 'dark')
 
-    render(<ThemeSwitcher />)
+    render(<ThemeSwitcher labels={labels} />)
 
     expect(screen.getByRole('radio', { name: 'Oscuro' })).toBeChecked()
   })
 
   it('applies and saves the chosen theme', async () => {
     const user = userEvent.setup()
-    render(<ThemeSwitcher />)
+    render(<ThemeSwitcher labels={labels} />)
 
     await user.click(screen.getByRole('radio', { name: 'Oscuro' }))
 
@@ -54,7 +56,7 @@ describe('ThemeSwitcher', () => {
   })
 
   it('follows a theme chosen in another tab, and ignores other saved values', () => {
-    render(<ThemeSwitcher />)
+    render(<ThemeSwitcher labels={labels} />)
 
     changeInAnotherTab('language', 'en')
     expect(screen.getByRole('radio', { name: 'Sistema' })).toBeChecked()
@@ -68,7 +70,7 @@ describe('ThemeSwitcher', () => {
     localStorage.setItem(THEME_STORAGE_KEY, 'dark')
     const container = document.createElement('div')
 
-    container.innerHTML = renderToString(<ThemeSwitcher />)
+    container.innerHTML = renderToString(<ThemeSwitcher labels={labels} />)
 
     expect(container.querySelector<HTMLInputElement>('input[value="system"]')?.checked).toBe(true)
   })

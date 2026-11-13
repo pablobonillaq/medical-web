@@ -27,7 +27,7 @@ describe('SkipLink', () => {
     render(
       <>
         <SkipLink />
-        <a href="/servicios">Servicios</a>
+        <button type="button">Servicios</button>
       </>,
     )
 

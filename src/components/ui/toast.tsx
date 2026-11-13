@@ -33,10 +33,16 @@ const accents: Record<ToastVariant, string> = {
   danger: 'border-l-danger',
 }
 
+type ToastProviderProps = {
+  children: ReactNode
+  // The name of the ✕ button of every toast
+  closeLabel?: string
+}
+
 // The two live regions are always on the page, even when empty: screen readers only announce
 // what is added to a region they already know. Errors go to the assertive one and interrupt;
 // the rest wait until the screen reader is quiet.
-export function ToastProvider({ children }: { children: ReactNode }) {
+export function ToastProvider({ children, closeLabel = 'Cerrar aviso' }: ToastProviderProps) {
   const [toasts, setToasts] = useState<ToastMessage[]>([])
   const lastId = useRef(0)
 
@@ -51,8 +57,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const renderToasts = (list: ToastMessage[]) =>
-    list.map((toast) => <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />)
-
+    list.map((toast) => (
+      <ToastItem key={toast.id} toast={toast} closeLabel={closeLabel} onDismiss={dismiss} />
+    ))
   return (
     <ToastContext value={showToast}>
       {children}
@@ -71,9 +78,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 type ToastItemProps = {
   toast: ToastMessage
   onDismiss: (id: number) => void
+  closeLabel: string
 }
 
-function ToastItem({ toast, onDismiss }: ToastItemProps) {
+function ToastItem({ toast, closeLabel, onDismiss }: ToastItemProps) {
   const [paused, setPaused] = useState(false)
   // Errors stay until they are closed: there is no time limit to read them (WCAG 2.2.1)
   const autoDismiss = toast.variant !== 'danger'
@@ -107,7 +115,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
         className="-m-2 inline-flex size-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-background"
       >
         <span aria-hidden="true">✕</span>
-        <VisuallyHidden>Cerrar aviso</VisuallyHidden>
+        <VisuallyHidden>{closeLabel}</VisuallyHidden>
       </button>
     </div>
   )
