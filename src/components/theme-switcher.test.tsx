@@ -26,7 +26,7 @@ describe('ThemeSwitcher', () => {
   it('is a group of three options named "Tema", with Sistema chosen by default', () => {
     render(<ThemeSwitcher labels={labels} />)
 
-    expect(screen.getByRole('group', { name: 'Tema' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Tema' })).toBeEnabled()
     expect(screen.getAllByRole('radio')).toHaveLength(3)
     expect(screen.getByRole('radio', { name: 'Sistema' })).toBeChecked()
   })
@@ -72,6 +72,7 @@ describe('ThemeSwitcher', () => {
 
     container.innerHTML = renderToString(<ThemeSwitcher labels={labels} />)
 
-    expect(container.querySelector<HTMLInputElement>('input[value="system"]')?.checked).toBe(true)
+    // Disabled until React hydrates, so an early click is not lost
+    expect(container.querySelector('fieldset')).toHaveAttribute('disabled')
   })
 })

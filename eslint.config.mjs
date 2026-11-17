@@ -16,6 +16,9 @@ const eslintConfig = defineConfig([
     'coverage/**',
     // Storybook build
     'storybook-static/**',
+    // Playwright reports and traces
+    'playwright-report/**',
+    'test-results/**',
   ]),
 ])
 

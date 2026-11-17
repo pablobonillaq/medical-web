@@ -32,11 +32,11 @@ Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appo
 - **Styles:** Tailwind CSS 4, with design tokens in CSS variables
 - **Languages:** Next.js internationalized routing (`app/[lang]`, `next/root-params`, Proxy) and typed dictionaries, with no i18n library
 - **Validation:** Zod
-- **Testing:** Vitest, Testing Library and V8 coverage
+- **Testing:** Vitest, Testing Library and V8 coverage; Playwright with axe in Chromium, Firefox, WebKit and a mobile viewport
 - **Code quality:** ESLint and Prettier
 - **CI:** GitHub Actions and SonarQube Cloud
 - **Component library:** class-variance-authority and tailwind-merge, documented in Storybook with accessibility checks (axe)
-- **Coming soon:** Redux Toolkit with thunks and sagas, Playwright with axe, Lighthouse CI
+- **Coming soon:** Redux Toolkit with thunks and sagas, Lighthouse CI
 
 ## Requirements
 
@@ -80,6 +80,8 @@ Variables are validated with Zod when the app starts (`src/config/env.ts`): a wr
 | `npm test`                | Runs the tests                                                 |
 | `npm run test:watch`      | Runs the tests in watch mode                                   |
 | `npm run test:coverage`   | Runs the tests and generates the coverage report (`coverage/`) |
+| `npm run test:e2e`        | Builds the app and runs the end-to-end tests with Playwright   |
+| `npm run test:e2e:ui`     | Opens the Playwright UI to run and debug end-to-end tests      |
 | `npm run storybook`       | Opens Storybook on port 6006                                   |
 | `npm run build-storybook` | Builds the static Storybook site (`storybook-static/`)         |
 
@@ -87,11 +89,22 @@ Variables are validated with Zod when the app starts (`src/config/env.ts`): a wr
 
 Tests use **Vitest** with **Testing Library** and live next to the code they test (`*.test.ts(x)`). Components are queried by role and accessible name, the way a screen reader finds them.
 
-Coverage is kept at **100%** of lines, branches, functions and statements, and `npm run test:coverage` fails if any of them drops. Vitest cannot render `async` Server Components yet, so those stay thin (they only load data and pass props) and the logic lives in functions and components that can be unit tested. The pages themselves will be covered by end-to-end tests with Playwright (see [ADR 0004](docs/adr/0004-testing-strategy.md)).
+Coverage is kept at **100%** of lines, branches, functions and statements, and `npm run test:coverage` fails if any of them drops. Async Server Components are awaited and their result rendered, with `next/root-params` and `next/navigation` mocked. They stay thin (they load data and pass props), and the logic lives in functions and components that can be unit tested (see [ADR 0004](docs/adr/0004-testing-strategy.md)).
+
+### End-to-end and accessibility tests
+
+What jsdom cannot check runs in real browsers with **Playwright** (`e2e/`), against the production build: the Proxy redirects, the 404 status, real keyboard focus, the theme before the first paint and the layout at 320 px wide. Every page is also checked with **axe** for the WCAG 2.2 A and AA rules, in both themes and both languages. They run in Chromium, Firefox, WebKit (Safari's engine) and a mobile viewport.
+
+```bash
+npx playwright install   # once: downloads the browsers
+npm run test:e2e         # builds the app, starts it on port 3001 and runs the tests
+```
+
+If `npm run dev` is already running on port 3001, the tests use it instead of building. The HTML report stays in `playwright-report/` (`npx playwright show-report`).
 
 ### Continuous integration
 
-On every push to `master` and every pull request, [GitHub Actions](.github/workflows/ci.yml) runs the type check, ESLint, the Prettier check, the tests with coverage and the production build. The coverage report is then sent to **SonarQube Cloud**, which checks the Quality Gate.
+On every push to `master` and every pull request, [GitHub Actions](.github/workflows/ci.yml) runs the type check, ESLint, the Prettier check, the tests with coverage and the production build. A second job runs the end-to-end tests and uploads the Playwright report. The coverage report is then sent to **SonarQube Cloud**, which checks the Quality Gate.
 
 ## Component library
 
@@ -120,18 +133,19 @@ The goal is **WCAG 2.2 level AA**. The color tokens are tested: every text color
 - it can be used with the keyboard alone, with a visible focus;
 - it uses semantic HTML (landmarks, headings, labels; every page has a header, a `main` region and a footer) and announces changes with `aria-live` where needed;
 - its contrast passes in both themes, and it respects `prefers-reduced-motion`;
-- its automated accessibility checks (axe) pass.
+- its automated accessibility checks (axe) pass, in Storybook and in the end-to-end tests.
 
 ## Project structure
 
 ```
 .github/
 └── workflows/
-    ├── ci.yml             # CI: types, lint, format, tests, build, Storybook and SonarQube
+    ├── ci.yml             # CI: types, lint, format, tests, build, Storybook, SonarQube and e2e
     └── storybook.yml      # publishes Storybook to GitHub Pages
 .storybook/                # Storybook: Vite with Tailwind, theme toolbar, accessibility checks
 docs/
 └── adr/                   # architecture decision records
+e2e/                       # end-to-end and axe tests with Playwright
 src/
 ├── app/                   # routes (App Router)
 │   ├── globals.css        # Tailwind and design tokens (light-dark() colors)
@@ -179,7 +193,8 @@ src/
     └── use-theme.ts       # React hook, kept in sync across tabs
 src/proxy.ts               # redirects URLs without a language to /es or /en
 next.config.ts             # Next.js configuration (Cache Components, rewrites)
-vitest.config.mts          # tests and the 100% coverage threshold
+playwright.config.ts       # browsers and the server for the end-to-end tests
+vitest.config.mts          # unit tests and the 100% coverage threshold
 ```
 
 ## Architecture decisions

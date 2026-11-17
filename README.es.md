@@ -32,11 +32,11 @@ Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agen
 - **Estilos:** Tailwind CSS 4, con tokens de diseño en variables CSS
 - **Idiomas:** rutas internacionalizadas de Next.js (`app/[lang]`, `next/root-params`, Proxy) y diccionarios tipados, sin librería de i18n
 - **Validación:** Zod
-- **Pruebas:** Vitest, Testing Library y cobertura con V8
+- **Pruebas:** Vitest, Testing Library y cobertura con V8; Playwright con axe en Chromium, Firefox, WebKit y una vista de celular
 - **Calidad de código:** ESLint y Prettier
 - **CI:** GitHub Actions y SonarQube Cloud
 - **Librería de componentes:** class-variance-authority y tailwind-merge, documentada en Storybook con revisiones de accesibilidad (axe)
-- **Por agregar:** Redux Toolkit con thunks y sagas, Playwright con axe, Lighthouse CI
+- **Por agregar:** Redux Toolkit con thunks y sagas, Lighthouse CI
 
 ## Requisitos
 
@@ -80,6 +80,8 @@ Las variables se validan con Zod al iniciar la app (`src/config/env.ts`): un val
 | `npm test`                | Ejecuta las pruebas                                                |
 | `npm run test:watch`      | Ejecuta las pruebas en modo watch                                  |
 | `npm run test:coverage`   | Ejecuta las pruebas y genera el reporte de cobertura (`coverage/`) |
+| `npm run test:e2e`        | Genera el build y ejecuta las pruebas end-to-end con Playwright    |
+| `npm run test:e2e:ui`     | Abre la interfaz de Playwright para correr y depurar pruebas e2e   |
 | `npm run storybook`       | Abre Storybook en el puerto 6006                                   |
 | `npm run build-storybook` | Genera el sitio estático de Storybook (`storybook-static/`)        |
 
@@ -87,11 +89,22 @@ Las variables se validan con Zod al iniciar la app (`src/config/env.ts`): un val
 
 Las pruebas usan **Vitest** con **Testing Library** y están junto al código que prueban (`*.test.ts(x)`). Los componentes se buscan por su rol y su nombre accesible, igual que los encuentra un lector de pantalla.
 
-La cobertura se mantiene en **100 %** de líneas, ramas, funciones y sentencias, y `npm run test:coverage` falla si alguna baja. Vitest todavía no puede renderizar Server Components `async`, así que esos se mantienen delgados (solo cargan datos y pasan props) y la lógica vive en funciones y componentes que sí se pueden probar. Las páginas se cubrirán con pruebas end-to-end en Playwright (ver [ADR 0004](docs/adr/0004-testing-strategy.md)).
+La cobertura se mantiene en **100 %** de líneas, ramas, funciones y sentencias, y `npm run test:coverage` falla si alguna baja. Los Server Components `async` se esperan con `await` y se renderiza su resultado, con `next/root-params` y `next/navigation` simulados. Se mantienen delgados (cargan datos y pasan props), y la lógica vive en funciones y componentes que sí se pueden probar (ver [ADR 0004](docs/adr/0004-testing-strategy.md)).
+
+### Pruebas end-to-end y de accesibilidad
+
+Lo que jsdom no puede revisar corre en navegadores reales con **Playwright** (`e2e/`), contra el build de producción: las redirecciones del Proxy, el estado 404, el foco real del teclado, el tema antes del primer pintado y el diseño a 320 px de ancho. Además, **axe** revisa cada página con las reglas A y AA de WCAG 2.2, en los dos temas y los dos idiomas. Corren en Chromium, Firefox, WebKit (el motor de Safari) y una vista de celular.
+
+```bash
+npx playwright install   # una vez: descarga los navegadores
+npm run test:e2e         # genera el build, lo inicia en el puerto 3001 y corre las pruebas
+```
+
+Si `npm run dev` ya está corriendo en el puerto 3001, las pruebas lo usan en lugar de generar el build. El reporte HTML queda en `playwright-report/` (`npx playwright show-report`).
 
 ### Integración continua
 
-En cada push a `master` y en cada pull request, [GitHub Actions](.github/workflows/ci.yml) ejecuta la revisión de tipos, ESLint, la revisión de Prettier, las pruebas con cobertura y el build de producción. Después envía el reporte de cobertura a **SonarQube Cloud**, que evalúa el Quality Gate.
+En cada push a `master` y en cada pull request, [GitHub Actions](.github/workflows/ci.yml) ejecuta la revisión de tipos, ESLint, la revisión de Prettier, las pruebas con cobertura y el build de producción. Un segundo job corre las pruebas end-to-end y sube el reporte de Playwright. Después envía el reporte de cobertura a **SonarQube Cloud**, que evalúa el Quality Gate.
 
 ## Librería de componentes
 
@@ -120,18 +133,19 @@ La meta es **WCAG 2.2 nivel AA**. Los tokens de color tienen pruebas: cada color
 - se puede usar solo con el teclado, con el foco visible;
 - usa HTML semántico (regiones, encabezados, etiquetas; cada página tiene encabezado, región `main` y pie) y anuncia los cambios con `aria-live` donde hace falta;
 - su contraste pasa en los dos temas y respeta `prefers-reduced-motion`;
-- pasan sus revisiones automáticas de accesibilidad (axe).
+- pasan sus revisiones automáticas de accesibilidad (axe), en Storybook y en las pruebas end-to-end.
 
 ## Estructura del proyecto
 
 ```
 .github/
 └── workflows/
-    ├── ci.yml             # CI: tipos, lint, formato, pruebas, build, Storybook y SonarQube
+    ├── ci.yml             # CI: tipos, lint, formato, pruebas, build, Storybook, SonarQube y e2e
     └── storybook.yml      # publica Storybook en GitHub Pages
 .storybook/                # Storybook: Vite con Tailwind, selector de tema, revisiones de accesibilidad
 docs/
 └── adr/                   # registros de decisiones de arquitectura
+e2e/                       # pruebas end-to-end y de axe con Playwright
 src/
 ├── app/                   # rutas (App Router)
 │   ├── globals.css        # Tailwind y tokens de diseño (colores con light-dark())
@@ -179,7 +193,8 @@ src/
     └── use-theme.ts       # hook de React, sincronizado entre pestañas
 src/proxy.ts               # redirige las URL sin idioma a /es o /en
 next.config.ts             # configuración de Next.js (Cache Components, rewrites)
-vitest.config.mts          # pruebas y el umbral de 100 % de cobertura
+playwright.config.ts       # navegadores y servidor de las pruebas end-to-end
+vitest.config.mts          # pruebas unitarias y el umbral de 100 % de cobertura
 ```
 
 ## Decisiones de arquitectura

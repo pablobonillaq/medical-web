@@ -7,6 +7,8 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   test: {
     environment: 'jsdom',
+    // Only the unit tests: the end-to-end tests in e2e/ run with Playwright
+    include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['./vitest.setup.ts'],
     // Undo every vi.spyOn() and vi.fn() after each test
     restoreMocks: true,
