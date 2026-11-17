@@ -8,7 +8,7 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phases 1 (base setup) and 2 (design system) completed; Phase 3 (languages and app shell) completed; Phase 4 (data layer) next.
+> **Status:** in development. Phases 1 (base setup) and 2 (design system) completed; Phase 3 (languages and app shell) completed; Phase 4 (data layer) in progress.
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
@@ -32,7 +32,7 @@ Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appo
 - **Styles:** Tailwind CSS 4, with design tokens in CSS variables
 - **Languages:** Next.js internationalized routing (`app/[lang]`, `next/root-params`, Proxy) and typed dictionaries, with no i18n library
 - **Validation:** Zod
-- **Testing:** Vitest, Testing Library and V8 coverage; Playwright with axe in Chromium, Firefox, WebKit and a mobile viewport; Lighthouse CI
+- **Testing:** Vitest, Testing Library, MSW (fake API) and V8 coverage; Playwright with axe in Chromium, Firefox, WebKit and a mobile viewport; Lighthouse CI
 - **Code quality:** ESLint and Prettier
 - **CI:** GitHub Actions and SonarQube Cloud
 - **Component library:** class-variance-authority and tailwind-merge, documented in Storybook with accessibility checks (axe)
@@ -88,7 +88,7 @@ Variables are validated with Zod when the app starts (`src/config/env.ts`): a wr
 
 ## Testing
 
-Tests use **Vitest** with **Testing Library** and live next to the code they test (`*.test.ts(x)`). Components are queried by role and accessible name, the way a screen reader finds them.
+Tests use **Vitest** with **Testing Library** and live next to the code they test (`*.test.ts(x)`). Components are queried by role and accessible name, the way a screen reader finds them. Requests to the API are answered by **MSW** (`mocks/`), which intercepts `fetch` with answers shaped like the real API; a request with no answer fails the test, so no test reaches a real server.
 
 Coverage is kept at **100%** of lines, branches, functions and statements, and `npm run test:coverage` fails if any of them drops. Async Server Components are awaited and their result rendered, with `next/root-params` and `next/navigation` mocked. They stay thin (they load data and pass props), and the logic lives in functions and components that can be unit tested (see [ADR 0004](docs/adr/0004-testing-strategy.md)).
 
@@ -156,7 +156,10 @@ The goal is **WCAG 2.2 level AA**. The color tokens are tested: every text color
 docs/
 └── adr/                   # architecture decision records
 e2e/                       # end-to-end and axe tests with Playwright
+mocks/                     # fake API for the tests (MSW)
 src/
+├── api/
+│   └── client.ts          # fetch for /api: JSON in and out, errors as ApiError
 ├── app/                   # routes (App Router)
 │   ├── globals.css        # Tailwind and design tokens (light-dark() colors)
 │   ├── globals.test.ts    # checks the WCAG contrast of every color pair, in both themes
@@ -223,7 +226,7 @@ vitest.config.mts          # unit tests and the 100% coverage threshold
 1. ~~Base setup: Next.js, Prettier, Vitest with 100% coverage, CI and SonarQube, connection to the API~~ ✅
 2. ~~Design system: tokens, light and dark themes, component library, Storybook~~ ✅
 3. ~~Languages and app shell: Spanish and English, layout, Playwright with axe, Lighthouse CI~~ ✅
-4. Data layer: Redux Toolkit store, API client, thunks, sagas and MSW
+4. Data layer: Redux Toolkit store, API client, thunks, sagas and MSW — in progress
 5. Authentication: sign in, sign-up, sign-out, protected routes, navigation by role, session expiry
 6. Public pages: home, services and doctors
 7. Patient area: profile, booking, my appointments, access log

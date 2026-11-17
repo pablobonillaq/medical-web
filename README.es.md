@@ -8,7 +8,7 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 (configuración base) y 2 (sistema de diseño) completadas; Fase 3 (idiomas y estructura) completada; sigue la Fase 4 (capa de datos).
+> **Estado:** en desarrollo. Fases 1 (configuración base) y 2 (sistema de diseño) completadas; Fase 3 (idiomas y estructura) completada; Fase 4 (capa de datos) en curso.
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
@@ -32,7 +32,7 @@ Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agen
 - **Estilos:** Tailwind CSS 4, con tokens de diseño en variables CSS
 - **Idiomas:** rutas internacionalizadas de Next.js (`app/[lang]`, `next/root-params`, Proxy) y diccionarios tipados, sin librería de i18n
 - **Validación:** Zod
-- **Pruebas:** Vitest, Testing Library y cobertura con V8; Playwright con axe en Chromium, Firefox, WebKit y una vista de celular; Lighthouse CI
+- **Pruebas:** Vitest, Testing Library, MSW (API simulada) y cobertura con V8; Playwright con axe en Chromium, Firefox, WebKit y una vista de celular; Lighthouse CI
 - **Calidad de código:** ESLint y Prettier
 - **CI:** GitHub Actions y SonarQube Cloud
 - **Librería de componentes:** class-variance-authority y tailwind-merge, documentada en Storybook con revisiones de accesibilidad (axe)
@@ -88,7 +88,7 @@ Las variables se validan con Zod al iniciar la app (`src/config/env.ts`): un val
 
 ## Pruebas
 
-Las pruebas usan **Vitest** con **Testing Library** y están junto al código que prueban (`*.test.ts(x)`). Los componentes se buscan por su rol y su nombre accesible, igual que los encuentra un lector de pantalla.
+Las pruebas usan **Vitest** con **Testing Library** y están junto al código que prueban (`*.test.ts(x)`). Los componentes se buscan por su rol y su nombre accesible, igual que los encuentra un lector de pantalla. Las peticiones a la API las responde **MSW** (`mocks/`), que intercepta `fetch` con respuestas con la misma forma que la API real; una petición sin respuesta hace fallar la prueba, así ninguna prueba llega a un servidor real.
 
 La cobertura se mantiene en **100 %** de líneas, ramas, funciones y sentencias, y `npm run test:coverage` falla si alguna baja. Los Server Components `async` se esperan con `await` y se renderiza su resultado, con `next/root-params` y `next/navigation` simulados. Se mantienen delgados (cargan datos y pasan props), y la lógica vive en funciones y componentes que sí se pueden probar (ver [ADR 0004](docs/adr/0004-testing-strategy.md)).
 
@@ -156,7 +156,10 @@ La meta es **WCAG 2.2 nivel AA**. Los tokens de color tienen pruebas: cada color
 docs/
 └── adr/                   # registros de decisiones de arquitectura
 e2e/                       # pruebas end-to-end y de axe con Playwright
+mocks/                     # API simulada para las pruebas (MSW)
 src/
+├── api/
+│   └── client.ts          # fetch para /api: JSON de ida y vuelta, errores como ApiError
 ├── app/                   # rutas (App Router)
 │   ├── globals.css        # Tailwind y tokens de diseño (colores con light-dark())
 │   ├── globals.test.ts    # revisa el contraste WCAG de cada par de colores, en los dos temas
@@ -225,7 +228,7 @@ Están escritas en inglés, como el código.
 1. ~~Configuración base: Next.js, Prettier, Vitest con 100 % de cobertura, CI y SonarQube, conexión con la API~~ ✅
 2. ~~Sistema de diseño: tokens, temas claro y oscuro, librería de componentes, Storybook~~ ✅
 3. ~~Idiomas y estructura: español e inglés, layout, Playwright con axe, Lighthouse CI~~ ✅
-4. Capa de datos: store de Redux Toolkit, cliente de la API, thunks, sagas y MSW
+4. Capa de datos: store de Redux Toolkit, cliente de la API, thunks, sagas y MSW — en curso
 5. Autenticación: inicio de sesión, registro, cierre de sesión, rutas protegidas, navegación por rol, vencimiento de sesión
 6. Páginas públicas: inicio, servicios y médicos
 7. Área del paciente: perfil, reservas, mis citas, registro de accesos

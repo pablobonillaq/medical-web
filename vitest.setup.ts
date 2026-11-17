@@ -1,10 +1,22 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import { afterAll, afterEach, beforeAll } from 'vitest'
+import { server } from './mocks/node'
 
-// Each test starts with an empty document
+// The fake API answers every request. A request with no handler fails the test, so no test
+// reaches a real server by accident
+beforeAll(() => {
+  server.listen({ onUnhandledFrame: 'error' })
+})
+
+// Each test starts with an empty document and the default answers of the fake API
 afterEach(() => {
   cleanup()
+  server.resetHandlers()
+})
+
+afterAll(() => {
+  server.close()
 })
 
 // jsdom does not implement <dialog> yet. This is the least the components need: open, close and
