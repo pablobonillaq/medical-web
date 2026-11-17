@@ -8,7 +8,7 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phases 1 (base setup) and 2 (design system) completed; Phase 3 (languages and app shell) in progress.
+> **Status:** in development. Phases 1 (base setup) and 2 (design system) completed; Phase 3 (languages and app shell) completed; Phase 4 (data layer) next.
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
@@ -32,11 +32,11 @@ Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appo
 - **Styles:** Tailwind CSS 4, with design tokens in CSS variables
 - **Languages:** Next.js internationalized routing (`app/[lang]`, `next/root-params`, Proxy) and typed dictionaries, with no i18n library
 - **Validation:** Zod
-- **Testing:** Vitest, Testing Library and V8 coverage; Playwright with axe in Chromium, Firefox, WebKit and a mobile viewport
+- **Testing:** Vitest, Testing Library and V8 coverage; Playwright with axe in Chromium, Firefox, WebKit and a mobile viewport; Lighthouse CI
 - **Code quality:** ESLint and Prettier
 - **CI:** GitHub Actions and SonarQube Cloud
 - **Component library:** class-variance-authority and tailwind-merge, documented in Storybook with accessibility checks (axe)
-- **Coming soon:** Redux Toolkit with thunks and sagas, Lighthouse CI
+- **Coming soon:** Redux Toolkit with thunks and sagas
 
 ## Requirements
 
@@ -68,22 +68,23 @@ Variables are validated with Zod when the app starts (`src/config/env.ts`): a wr
 
 ## Scripts
 
-| Command                   | Description                                                    |
-| ------------------------- | -------------------------------------------------------------- |
-| `npm run dev`             | Starts the development server on port 3001                     |
-| `npm run build`           | Builds the app for production                                  |
-| `npm start`               | Serves the production build on port 3001                       |
-| `npm run typecheck`       | Generates the route types and type-checks the code             |
-| `npm run lint`            | Lints the code with ESLint                                     |
-| `npm run format`          | Formats the code with Prettier (and sorts Tailwind classes)    |
-| `npm run check`           | Runs typecheck, lint, the format check and the tests           |
-| `npm test`                | Runs the tests                                                 |
-| `npm run test:watch`      | Runs the tests in watch mode                                   |
-| `npm run test:coverage`   | Runs the tests and generates the coverage report (`coverage/`) |
-| `npm run test:e2e`        | Builds the app and runs the end-to-end tests with Playwright   |
-| `npm run test:e2e:ui`     | Opens the Playwright UI to run and debug end-to-end tests      |
-| `npm run storybook`       | Opens Storybook on port 6006                                   |
-| `npm run build-storybook` | Builds the static Storybook site (`storybook-static/`)         |
+| Command                   | Description                                                        |
+| ------------------------- | ------------------------------------------------------------------ |
+| `npm run dev`             | Starts the development server on port 3001                         |
+| `npm run build`           | Builds the app for production                                      |
+| `npm start`               | Serves the production build on port 3001                           |
+| `npm run typecheck`       | Generates the route types and type-checks the code                 |
+| `npm run lint`            | Lints the code with ESLint                                         |
+| `npm run format`          | Formats the code with Prettier (and sorts Tailwind classes)        |
+| `npm run check`           | Runs typecheck, lint, the format check and the tests               |
+| `npm test`                | Runs the tests                                                     |
+| `npm run test:watch`      | Runs the tests in watch mode                                       |
+| `npm run test:coverage`   | Runs the tests and generates the coverage report (`coverage/`)     |
+| `npm run test:e2e`        | Builds the app and runs the end-to-end tests with Playwright       |
+| `npm run test:e2e:ui`     | Opens the Playwright UI to run and debug end-to-end tests          |
+| `npm run lighthouse`      | Runs Lighthouse CI on the production build (`npm run build` first) |
+| `npm run storybook`       | Opens Storybook on port 6006                                       |
+| `npm run build-storybook` | Builds the static Storybook site (`storybook-static/`)             |
 
 ## Testing
 
@@ -102,9 +103,18 @@ npm run test:e2e         # builds the app, starts it on port 3001 and runs the t
 
 If `npm run dev` is already running on port 3001, the tests use it instead of building. The HTML report stays in `playwright-report/` (`npx playwright show-report`).
 
+### Lighthouse
+
+**Lighthouse CI** measures `/es` and `/en` on the production build, three times each, and fails if a score drops below the minimum (`lighthouserc.json`): accessibility **100**, best practices 95, SEO 90 and performance 90 (the median run, on a throttled mobile profile). The 404 page is left out on purpose: Lighthouse lowers the SEO score of any page that answers 404.
+
+```bash
+npm run build
+npm run lighthouse   # reports in .lighthouseci/reports/
+```
+
 ### Continuous integration
 
-On every push to `master` and every pull request, [GitHub Actions](.github/workflows/ci.yml) runs the type check, ESLint, the Prettier check, the tests with coverage and the production build. A second job runs the end-to-end tests and uploads the Playwright report. The coverage report is then sent to **SonarQube Cloud**, which checks the Quality Gate.
+On every push to `master` and every pull request, [GitHub Actions](.github/workflows/ci.yml) runs the type check, ESLint, the Prettier check, the tests with coverage and the production build. Two more jobs run in parallel: the end-to-end tests, which upload the Playwright report, and Lighthouse CI, which prints a link to each report. The coverage report is then sent to **SonarQube Cloud**, which checks the Quality Gate.
 
 ## Component library
 
@@ -140,7 +150,7 @@ The goal is **WCAG 2.2 level AA**. The color tokens are tested: every text color
 ```
 .github/
 └── workflows/
-    ├── ci.yml             # CI: types, lint, format, tests, build, Storybook, SonarQube and e2e
+    ├── ci.yml             # CI: types, lint, format, tests, build, Storybook, SonarQube, e2e, Lighthouse
     └── storybook.yml      # publishes Storybook to GitHub Pages
 .storybook/                # Storybook: Vite with Tailwind, theme toolbar, accessibility checks
 docs/
@@ -193,6 +203,7 @@ src/
     └── use-theme.ts       # React hook, kept in sync across tabs
 src/proxy.ts               # redirects URLs without a language to /es or /en
 next.config.ts             # Next.js configuration (Cache Components, rewrites)
+lighthouserc.json          # pages and minimum scores for Lighthouse CI
 playwright.config.ts       # browsers and the server for the end-to-end tests
 vitest.config.mts          # unit tests and the 100% coverage threshold
 ```
@@ -211,9 +222,9 @@ vitest.config.mts          # unit tests and the 100% coverage threshold
 
 1. ~~Base setup: Next.js, Prettier, Vitest with 100% coverage, CI and SonarQube, connection to the API~~ ✅
 2. ~~Design system: tokens, light and dark themes, component library, Storybook~~ ✅
-3. Languages and app shell: Spanish and English, layout and navigation by role, Playwright with axe, Lighthouse CI — in progress
+3. ~~Languages and app shell: Spanish and English, layout, Playwright with axe, Lighthouse CI~~ ✅
 4. Data layer: Redux Toolkit store, API client, thunks, sagas and MSW
-5. Authentication: sign in, sign-up, sign-out, protected routes, session expiry
+5. Authentication: sign in, sign-up, sign-out, protected routes, navigation by role, session expiry
 6. Public pages: home, services and doctors
 7. Patient area: profile, booking, my appointments, access log
 8. Front desk: patient search, walk-in patients, booking for a patient, daily agenda

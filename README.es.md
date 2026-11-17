@@ -8,7 +8,7 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 (configuración base) y 2 (sistema de diseño) completadas; Fase 3 (idiomas y estructura) en curso.
+> **Estado:** en desarrollo. Fases 1 (configuración base) y 2 (sistema de diseño) completadas; Fase 3 (idiomas y estructura) completada; sigue la Fase 4 (capa de datos).
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
@@ -32,11 +32,11 @@ Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agen
 - **Estilos:** Tailwind CSS 4, con tokens de diseño en variables CSS
 - **Idiomas:** rutas internacionalizadas de Next.js (`app/[lang]`, `next/root-params`, Proxy) y diccionarios tipados, sin librería de i18n
 - **Validación:** Zod
-- **Pruebas:** Vitest, Testing Library y cobertura con V8; Playwright con axe en Chromium, Firefox, WebKit y una vista de celular
+- **Pruebas:** Vitest, Testing Library y cobertura con V8; Playwright con axe en Chromium, Firefox, WebKit y una vista de celular; Lighthouse CI
 - **Calidad de código:** ESLint y Prettier
 - **CI:** GitHub Actions y SonarQube Cloud
 - **Librería de componentes:** class-variance-authority y tailwind-merge, documentada en Storybook con revisiones de accesibilidad (axe)
-- **Por agregar:** Redux Toolkit con thunks y sagas, Lighthouse CI
+- **Por agregar:** Redux Toolkit con thunks y sagas
 
 ## Requisitos
 
@@ -68,22 +68,23 @@ Las variables se validan con Zod al iniciar la app (`src/config/env.ts`): un val
 
 ## Scripts
 
-| Comando                   | Descripción                                                        |
-| ------------------------- | ------------------------------------------------------------------ |
-| `npm run dev`             | Inicia el servidor de desarrollo en el puerto 3001                 |
-| `npm run build`           | Genera el build de producción                                      |
-| `npm start`               | Sirve el build de producción en el puerto 3001                     |
-| `npm run typecheck`       | Genera los tipos de las rutas y revisa los tipos                   |
-| `npm run lint`            | Revisa el código con ESLint                                        |
-| `npm run format`          | Formatea el código con Prettier (y ordena las clases de Tailwind)  |
-| `npm run check`           | Ejecuta typecheck, lint, la revisión de formato y las pruebas      |
-| `npm test`                | Ejecuta las pruebas                                                |
-| `npm run test:watch`      | Ejecuta las pruebas en modo watch                                  |
-| `npm run test:coverage`   | Ejecuta las pruebas y genera el reporte de cobertura (`coverage/`) |
-| `npm run test:e2e`        | Genera el build y ejecuta las pruebas end-to-end con Playwright    |
-| `npm run test:e2e:ui`     | Abre la interfaz de Playwright para correr y depurar pruebas e2e   |
-| `npm run storybook`       | Abre Storybook en el puerto 6006                                   |
-| `npm run build-storybook` | Genera el sitio estático de Storybook (`storybook-static/`)        |
+| Comando                   | Descripción                                                              |
+| ------------------------- | ------------------------------------------------------------------------ |
+| `npm run dev`             | Inicia el servidor de desarrollo en el puerto 3001                       |
+| `npm run build`           | Genera el build de producción                                            |
+| `npm start`               | Sirve el build de producción en el puerto 3001                           |
+| `npm run typecheck`       | Genera los tipos de las rutas y revisa los tipos                         |
+| `npm run lint`            | Revisa el código con ESLint                                              |
+| `npm run format`          | Formatea el código con Prettier (y ordena las clases de Tailwind)        |
+| `npm run check`           | Ejecuta typecheck, lint, la revisión de formato y las pruebas            |
+| `npm test`                | Ejecuta las pruebas                                                      |
+| `npm run test:watch`      | Ejecuta las pruebas en modo watch                                        |
+| `npm run test:coverage`   | Ejecuta las pruebas y genera el reporte de cobertura (`coverage/`)       |
+| `npm run test:e2e`        | Genera el build y ejecuta las pruebas end-to-end con Playwright          |
+| `npm run test:e2e:ui`     | Abre la interfaz de Playwright para correr y depurar pruebas e2e         |
+| `npm run lighthouse`      | Corre Lighthouse CI sobre el build de producción (antes `npm run build`) |
+| `npm run storybook`       | Abre Storybook en el puerto 6006                                         |
+| `npm run build-storybook` | Genera el sitio estático de Storybook (`storybook-static/`)              |
 
 ## Pruebas
 
@@ -102,9 +103,18 @@ npm run test:e2e         # genera el build, lo inicia en el puerto 3001 y corre 
 
 Si `npm run dev` ya está corriendo en el puerto 3001, las pruebas lo usan en lugar de generar el build. El reporte HTML queda en `playwright-report/` (`npx playwright show-report`).
 
+### Lighthouse
+
+**Lighthouse CI** mide `/es` y `/en` sobre el build de producción, tres veces cada una, y falla si una puntuación baja del mínimo (`lighthouserc.json`): accesibilidad **100**, buenas prácticas 95, SEO 90 y rendimiento 90 (la ejecución mediana, con un perfil de celular con red y CPU limitadas). La página 404 queda fuera a propósito: Lighthouse baja el SEO de cualquier página que responde 404.
+
+```bash
+npm run build
+npm run lighthouse   # reportes en .lighthouseci/reports/
+```
+
 ### Integración continua
 
-En cada push a `master` y en cada pull request, [GitHub Actions](.github/workflows/ci.yml) ejecuta la revisión de tipos, ESLint, la revisión de Prettier, las pruebas con cobertura y el build de producción. Un segundo job corre las pruebas end-to-end y sube el reporte de Playwright. Después envía el reporte de cobertura a **SonarQube Cloud**, que evalúa el Quality Gate.
+En cada push a `master` y en cada pull request, [GitHub Actions](.github/workflows/ci.yml) ejecuta la revisión de tipos, ESLint, la revisión de Prettier, las pruebas con cobertura y el build de producción. Otros dos jobs corren en paralelo: las pruebas end-to-end, que suben el reporte de Playwright, y Lighthouse CI, que imprime un enlace a cada reporte. Después envía el reporte de cobertura a **SonarQube Cloud**, que evalúa el Quality Gate.
 
 ## Librería de componentes
 
@@ -140,7 +150,7 @@ La meta es **WCAG 2.2 nivel AA**. Los tokens de color tienen pruebas: cada color
 ```
 .github/
 └── workflows/
-    ├── ci.yml             # CI: tipos, lint, formato, pruebas, build, Storybook, SonarQube y e2e
+    ├── ci.yml             # CI: tipos, lint, formato, pruebas, build, Storybook, SonarQube, e2e, Lighthouse
     └── storybook.yml      # publica Storybook en GitHub Pages
 .storybook/                # Storybook: Vite con Tailwind, selector de tema, revisiones de accesibilidad
 docs/
@@ -193,6 +203,7 @@ src/
     └── use-theme.ts       # hook de React, sincronizado entre pestañas
 src/proxy.ts               # redirige las URL sin idioma a /es o /en
 next.config.ts             # configuración de Next.js (Cache Components, rewrites)
+lighthouserc.json          # páginas y puntuaciones mínimas de Lighthouse CI
 playwright.config.ts       # navegadores y servidor de las pruebas end-to-end
 vitest.config.mts          # pruebas unitarias y el umbral de 100 % de cobertura
 ```
@@ -213,9 +224,9 @@ Están escritas en inglés, como el código.
 
 1. ~~Configuración base: Next.js, Prettier, Vitest con 100 % de cobertura, CI y SonarQube, conexión con la API~~ ✅
 2. ~~Sistema de diseño: tokens, temas claro y oscuro, librería de componentes, Storybook~~ ✅
-3. Idiomas y estructura: español e inglés, layout y navegación por rol, Playwright con axe, Lighthouse CI — en curso
+3. ~~Idiomas y estructura: español e inglés, layout, Playwright con axe, Lighthouse CI~~ ✅
 4. Capa de datos: store de Redux Toolkit, cliente de la API, thunks, sagas y MSW
-5. Autenticación: inicio de sesión, registro, cierre de sesión, rutas protegidas, vencimiento de sesión
+5. Autenticación: inicio de sesión, registro, cierre de sesión, rutas protegidas, navegación por rol, vencimiento de sesión
 6. Páginas públicas: inicio, servicios y médicos
 7. Área del paciente: perfil, reservas, mis citas, registro de accesos
 8. Recepción: búsqueda de pacientes, pacientes sin cuenta, reservas para un paciente, agenda del día
