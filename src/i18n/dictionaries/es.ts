@@ -33,6 +33,19 @@ export const es = {
     description: 'Puede que la dirección esté mal escrita o que la página ya no exista.',
     home: 'Volver al inicio',
   },
+  account: {
+    signIn: 'Iniciar sesión',
+    signOut: 'Cerrar sesión',
+    signingOut: 'cerrando sesión',
+    signedInAs: 'Sesión iniciada como',
+    signOutFailed: 'No pudimos cerrar tu sesión. Revisa tu conexión e inténtalo de nuevo.',
+    roles: {
+      admin: 'Administración',
+      doctor: 'Médico',
+      employee: 'Recepción',
+      patient: 'Paciente',
+    },
+  },
   login: {
     title: 'Iniciar sesión',
     intro: 'Entra con el correo y la contraseña de tu cuenta.',

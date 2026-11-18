@@ -31,11 +31,12 @@ export default defineConfig({
   ],
   webServer: [
     {
-      // Stands in for the Express API on port 3000 (see scripts/fake-api.mjs). Locally, the real
-      // API is used instead if it is already running
+      // Stands in for the Express API on port 3000 (see scripts/fake-api.mjs). Always this one,
+      // never a server already running there: the tests need its fictitious account and answers.
+      // If the port is taken, Playwright stops at once and says so
       command: 'node scripts/fake-api.mjs',
       url: 'http://localhost:3000/health',
-      reuseExistingServer: !isCI,
+      reuseExistingServer: false,
     },
     {
       command: 'npm run build && npm start',

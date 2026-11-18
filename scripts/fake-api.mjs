@@ -59,6 +59,11 @@ const routes = {
     }
   },
 
+  'POST /auth/logout': () => ({
+    status: 204,
+    headers: { 'Set-Cookie': `${SESSION_COOKIE}=; Max-Age=0; Path=/; HttpOnly; SameSite=Strict` },
+  }),
+
   'GET /auth/me': (request) =>
     hasSession(request)
       ? { status: 200, body: { user: patient } }
@@ -75,7 +80,8 @@ createServer(async (request, response) => {
   } = route ? await route(request) : { status: 404, body: { error: 'Not found' } }
 
   response.writeHead(status, { 'Content-Type': 'application/json', ...headers })
-  response.end(JSON.stringify(body))
+  // 204 No Content has no body
+  response.end(body === undefined ? undefined : JSON.stringify(body))
 }).listen(PORT, () => {
   console.log(`Fake API ready on http://localhost:${PORT}`)
 })

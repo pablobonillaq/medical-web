@@ -40,13 +40,24 @@ export const signIn = createAsyncThunk<SessionUser, LoginValues, { rejectValue: 
   },
 )
 
+// The API clears its session cookie and answers 204
+export const signOut = createAsyncThunk('session/signOut', () =>
+  apiRequest<undefined>('/auth/logout', { method: 'POST' }),
+)
+
 type SessionState = {
   user: SessionUser | null
   signingIn: boolean
   signInError: SignInError | null
+  signingOut: boolean
 }
 
-const initialState: SessionState = { user: null, signingIn: false, signInError: null }
+const initialState: SessionState = {
+  user: null,
+  signingIn: false,
+  signInError: null,
+  signingOut: false,
+}
 
 export const sessionSlice = createSlice({
   name: 'session',
@@ -67,12 +78,25 @@ export const sessionSlice = createSlice({
         // No payload only if the request was aborted before it ended
         state.signInError = action.payload ?? 'unknown'
       })
+      .addCase(signOut.pending, (state) => {
+        state.signingOut = true
+      })
+      .addCase(signOut.fulfilled, (state) => {
+        state.signingOut = false
+        state.user = null
+      })
+      .addCase(signOut.rejected, (state) => {
+        // The cookie is still there: the visitor is still signed in
+        state.signingOut = false
+      })
   },
   selectors: {
     selectSessionUser: (state) => state.user,
     selectSigningIn: (state) => state.signingIn,
     selectSignInError: (state) => state.signInError,
+    selectSigningOut: (state) => state.signingOut,
   },
 })
 
-export const { selectSessionUser, selectSigningIn, selectSignInError } = sessionSlice.selectors
+export const { selectSessionUser, selectSigningIn, selectSignInError, selectSigningOut } =
+  sessionSlice.selectors

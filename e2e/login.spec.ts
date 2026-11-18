@@ -39,13 +39,21 @@ test('announces wrong credentials', async ({ page }) => {
 
 test('signs in and goes back to the page in ?next=', async ({ page, context }) => {
   await page.goto('/es/login?next=%2Fen')
+  const login = page.waitForResponse('**/api/auth/login')
 
   await signIn(page, PATIENT.email, PATIENT.password)
 
   await expect(page).toHaveURL('/en')
-  // The API set its session cookie, out of reach of JavaScript
-  const cookie = (await context.cookies()).find(({ name }) => name === 'access_token')
-  expect(cookie).toMatchObject({ httpOnly: true, sameSite: 'Strict' })
+  // What the API tells the browser to do with its session cookie. Checked on the response:
+  // WebKit outside macOS reports sameSite wrongly through context.cookies()
+  const setCookie = await (await login).headerValue('set-cookie')
+  expect(setCookie).toMatch(/^access_token=/)
+  expect(setCookie).toContain('HttpOnly')
+  expect(setCookie).toContain('SameSite=Strict')
+  // The browser kept it, out of reach of JavaScript
+  const cookies = await context.cookies()
+  expect(cookies.some(({ name }) => name === 'access_token')).toBe(true)
+  expect(await page.evaluate(() => document.cookie)).not.toContain('access_token')
 })
 
 test('never sends the visitor to another site after signing in', async ({ page }) => {
@@ -54,4 +62,27 @@ test('never sends the visitor to another site after signing in', async ({ page }
   await signIn(page, PATIENT.email, PATIENT.password)
 
   await expect(page).toHaveURL('/es')
+})
+
+test('shows who signed in and signs out', async ({ page, context }) => {
+  await page.goto('/es/login')
+  await signIn(page, PATIENT.email, PATIENT.password)
+
+  const banner = page.getByRole('banner')
+  await expect(banner).toContainText('paciente@test.com · Paciente')
+
+  await banner.getByRole('button', { name: 'Cerrar sesión' }).click()
+
+  await expect(page).toHaveURL('/es')
+  await expect(banner.getByRole('link', { name: 'Iniciar sesión' })).toBeVisible()
+  const cookies = await context.cookies()
+  expect(cookies.find(({ name }) => name === 'access_token')).toBeUndefined()
+})
+
+test('the sign-in link brings the visitor back to the page', async ({ page }) => {
+  await page.goto('/en')
+
+  await page.getByRole('banner').getByRole('link', { name: 'Sign in' }).click()
+
+  await expect(page).toHaveURL('/en/login?next=%2Fen')
 })

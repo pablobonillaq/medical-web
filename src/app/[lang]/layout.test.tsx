@@ -13,6 +13,12 @@ vi.mock('next/font/google', () => ({
 // next/root-params only works inside Next.js: in tests the language of the URL is set by hand
 vi.mock('next/root-params', () => ({ lang: vi.fn(async () => 'es') }))
 
+// A request without a session cookie: the account area in the header asks for one
+vi.mock('next/headers', () => ({
+  cookies: async () => ({ get: () => undefined }),
+  headers: async () => new Headers(),
+}))
+
 // Outside Next.js there is no router: the language switcher in the header gets the path by hand
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
@@ -52,6 +58,8 @@ describe('RootLayout', () => {
 
     expect(header.tagName).toBe('HEADER')
     expect(header.querySelector('a[href="/es"]')?.textContent).toBe('Clínica')
+    // The account reads the session, so it streams in later: first comes its placeholder
+    expect(header.querySelector('[aria-hidden="true"].animate-pulse')).not.toBeNull()
     expect(main.tagName).toBe('MAIN')
     expect(main.id).toBe('main-content')
     expect(main.getAttribute('tabindex')).toBe('-1')

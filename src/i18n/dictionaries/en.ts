@@ -34,6 +34,19 @@ export const en: Dictionary = {
     description: 'The address may be misspelled, or the page may no longer exist.',
     home: 'Back to home',
   },
+  account: {
+    signIn: 'Sign in',
+    signOut: 'Sign out',
+    signingOut: 'signing out',
+    signedInAs: 'Signed in as',
+    signOutFailed: "We couldn't sign you out. Check your connection and try again.",
+    roles: {
+      admin: 'Admin',
+      doctor: 'Doctor',
+      employee: 'Front desk',
+      patient: 'Patient',
+    },
+  },
   login: {
     title: 'Sign in',
     intro: 'Use the email and password of your account.',

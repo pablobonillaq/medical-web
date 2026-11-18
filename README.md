@@ -16,7 +16,7 @@ Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appo
 - [x] Light, dark or system theme, with no flash on load
 - [x] Component library with typed variants, documented in Storybook
 - [x] Spanish and English (`/es`, `/en`), with the language chosen from the browser or the last visit
-- [ ] Sign in (done), patient sign-up and sign-out; routes protected by role on the server
+- [ ] Sign in and sign-out (done), patient sign-up; routes protected by role on the server
 - [ ] Public pages: home, services and doctors
 - [ ] Patients: book, cancel, reschedule and confirm appointments; see who opened their record
 - [ ] Front desk: patient search, walk-in patients, booking for a patient, daily agenda
@@ -68,24 +68,24 @@ Variables are validated with Zod when the app starts (`src/config/env.ts`): a wr
 
 ## Scripts
 
-| Command                   | Description                                                        |
-| ------------------------- | ------------------------------------------------------------------ |
-| `npm run dev`             | Starts the development server on port 3001                         |
-| `npm run build`           | Builds the app for production                                      |
-| `npm start`               | Serves the production build on port 3001                           |
-| `npm run typecheck`       | Generates the route types and type-checks the code                 |
-| `npm run lint`            | Lints the code with ESLint                                         |
-| `npm run format`          | Formats the code with Prettier (and sorts Tailwind classes)        |
-| `npm run check`           | Runs typecheck, lint, the format check and the tests               |
-| `npm test`                | Runs the tests                                                     |
-| `npm run test:watch`      | Runs the tests in watch mode                                       |
-| `npm run test:coverage`   | Runs the tests and generates the coverage report (`coverage/`)     |
-| `npm run test:e2e`        | Builds the app and runs the end-to-end tests with Playwright       |
-| `npm run test:e2e:ui`     | Opens the Playwright UI to run and debug end-to-end tests          |
-| `npm run lighthouse`      | Runs Lighthouse CI on the production build (`npm run build` first) |
-| `npm run fake-api`        | Starts a stand-in for the API on port 3000 (health and sign-in)    |
-| `npm run storybook`       | Opens Storybook on port 6006                                       |
-| `npm run build-storybook` | Builds the static Storybook site (`storybook-static/`)             |
+| Command                   | Description                                                            |
+| ------------------------- | ---------------------------------------------------------------------- |
+| `npm run dev`             | Starts the development server on port 3001                             |
+| `npm run build`           | Builds the app for production                                          |
+| `npm start`               | Serves the production build on port 3001                               |
+| `npm run typecheck`       | Generates the route types and type-checks the code                     |
+| `npm run lint`            | Lints the code with ESLint                                             |
+| `npm run format`          | Formats the code with Prettier (and sorts Tailwind classes)            |
+| `npm run check`           | Runs typecheck, lint, the format check and the tests                   |
+| `npm test`                | Runs the tests                                                         |
+| `npm run test:watch`      | Runs the tests in watch mode                                           |
+| `npm run test:coverage`   | Runs the tests and generates the coverage report (`coverage/`)         |
+| `npm run test:e2e`        | Builds the app and runs the end-to-end tests with Playwright           |
+| `npm run test:e2e:ui`     | Opens the Playwright UI to run and debug end-to-end tests              |
+| `npm run lighthouse`      | Runs Lighthouse CI on the production build (`npm run build` first)     |
+| `npm run fake-api`        | Starts a stand-in for the API on port 3000 (health, sign-in, sign-out) |
+| `npm run storybook`       | Opens Storybook on port 6006                                           |
+| `npm run build-storybook` | Builds the static Storybook site (`storybook-static/`)                 |
 
 ## Testing
 
@@ -102,7 +102,7 @@ npx playwright install   # once: downloads the browsers
 npm run test:e2e         # builds the app, starts it on port 3001 and runs the tests
 ```
 
-Playwright also starts a stand-in for the Express API on port 3000 (`scripts/fake-api.mjs`), so the tests need no database. If the real API or `npm run dev` are already running, the tests use them instead. The HTML report stays in `playwright-report/` (`npx playwright show-report`).
+Playwright also starts a stand-in for the Express API on port 3000 (`scripts/fake-api.mjs`), so the tests need no database. It is always this stand-in, with its fictitious account, so port 3000 must be free (stop the real API first). If `npm run dev` is already running on port 3001, the tests use it instead of building. The HTML report stays in `playwright-report/` (`npx playwright show-report`).
 
 ### Lighthouse
 
@@ -160,7 +160,7 @@ docs/
 e2e/                       # end-to-end and axe tests with Playwright
 mocks/                     # fake API for the tests (MSW)
 scripts/
-└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, sign-in)
+└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, sign-in, sign-out)
 src/
 ├── api/
 │   └── client.ts          # fetch for /api: JSON in and out, errors as ApiError
@@ -180,12 +180,15 @@ src/
 │       ├── not-found.tsx  # 404 page, inside the layout and in the language of the URL
 │       └── page.tsx       # home page
 ├── components/
+│   ├── account-area.tsx   # the header's account: who is signed in, streamed behind <Suspense>
+│   ├── account-menu.tsx   # email, role and the sign-out button
 │   ├── inline-script.tsx  # script that runs before the first paint, without React's warning
 │   ├── language-switcher.tsx # links to the same page in each language
 │   ├── login-form.tsx     # sign-in form: errors next to each field, announced failures
 │   ├── api-status.tsx     # whether the service is available, in the footer
 │   ├── site-footer.tsx    # footer of every page
-│   ├── site-header.tsx    # banner of every page: link home, theme and language
+│   ├── sign-in-link.tsx   # link to sign in that comes back to the current page
+│   ├── site-header.tsx    # banner of every page: link home, account, theme and language
 │   ├── theme-switcher.tsx # light, dark or system, as native radio buttons
 │   └── ui/                # component library
 │       ├── alert.tsx      # info, success, warning and error messages, announced when needed
@@ -219,7 +222,7 @@ src/
 │   ├── api-health-saga.ts # checks the API every minute, backs off on failures, pauses in hidden tabs
 │   ├── api-status-slice.ts # whether the API answers, with the checkApiHealth thunk
 │   ├── hooks.ts           # typed useAppDispatch, useAppSelector and useAppStore
-│   ├── session-slice.ts   # who signed in, with the signIn thunk
+│   ├── session-slice.ts   # who signed in, with the signIn and signOut thunks
 │   ├── store-provider.tsx # creates the store once per page load and starts the sagas
 │   └── store.ts           # makeStore (thunks and sagas) and the RootState and AppDispatch types
 └── theme/

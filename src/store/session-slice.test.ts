@@ -9,6 +9,8 @@ import {
   selectSigningIn,
   signIn,
   signInErrorFor,
+  selectSigningOut,
+  signOut,
 } from './session-slice'
 import { makeStore } from './store'
 
@@ -75,5 +77,41 @@ describe('signIn', () => {
     store.dispatch(signIn.rejected(new Error('Aborted'), 'request-id', credentials))
 
     expect(selectSignInError(store.getState())).toBe('unknown')
+  })
+})
+
+describe('signOut', () => {
+  const signedIn = () =>
+    makeStore({
+      session: { user: testUsers.patient, signingIn: false, signInError: null, signingOut: false },
+    })
+
+  it('asks the API to clear the session and forgets the user', async () => {
+    let requests = 0
+    server.use(
+      http.post('*/api/auth/logout', () => {
+        requests += 1
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    const store = signedIn()
+
+    const signingOut = store.dispatch(signOut())
+    expect(selectSigningOut(store.getState())).toBe(true)
+    await signingOut
+
+    expect(requests).toBe(1)
+    expect(selectSigningOut(store.getState())).toBe(false)
+    expect(selectSessionUser(store.getState())).toBeNull()
+  })
+
+  it('keeps the user when the API could not clear the session', async () => {
+    server.use(http.post('*/api/auth/logout', () => HttpResponse.error()))
+    const store = signedIn()
+
+    await store.dispatch(signOut())
+
+    expect(selectSigningOut(store.getState())).toBe(false)
+    expect(selectSessionUser(store.getState())).toEqual(testUsers.patient)
   })
 })

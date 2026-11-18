@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { Suspense } from 'react'
 import { InlineScript } from '@/components/inline-script'
+import { AccountArea, AccountAreaFallback } from '@/components/account-area'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import { SkipLink } from '@/components/ui/skip-link'
@@ -53,7 +55,15 @@ export default async function RootLayout({ children }: LayoutProps<'/[lang]'>) {
         <SkipLink>{dictionary.skipLink}</SkipLink>
         <StoreProvider>
           <ToastProvider closeLabel={dictionary.toast.close}>
-            <SiteHeader locale={locale} dictionary={dictionary} />
+            <SiteHeader
+              locale={locale}
+              dictionary={dictionary}
+              account={
+                <Suspense fallback={<AccountAreaFallback />}>
+                  <AccountArea locale={locale} labels={dictionary.account} />
+                </Suspense>
+              }
+            />
             {/* The target of the skip link. tabIndex -1 lets it take the focus without a Tab stop */}
             <main
               id="main-content"
