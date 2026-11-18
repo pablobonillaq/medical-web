@@ -18,6 +18,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "lighthouse": "lhci autorun",
+    "fake-api": "node scripts/fake-api.mjs",
     "check": "npm run typecheck && npm run lint && prettier --check . && npm test",
     "storybook": "storybook dev --port 6006",
     "build-storybook": "storybook build"

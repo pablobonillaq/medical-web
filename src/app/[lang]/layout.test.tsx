@@ -57,7 +57,9 @@ describe('RootLayout', () => {
     expect(main.getAttribute('tabindex')).toBe('-1')
     expect(main.textContent).toBe('Contenido')
     expect(footer.tagName).toBe('FOOTER')
-    expect(footer.textContent).toBe('Proyecto de portafolio. Todos los datos son ficticios.')
+    expect(footer.textContent).toContain('Proyecto de portafolio. Todos los datos son ficticios.')
+    // The status of the API is checked in the browser, after the page loads
+    expect(footer.textContent).toContain('Comprobando el servicio…')
   })
 
   it('keeps the live regions for toasts on every page', async () => {

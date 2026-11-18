@@ -108,6 +108,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Lighthouse runs without the Express API: the fake one answers /health on port 3000, so
+      # the page loads with no errors in the console. It keeps running for the next step
+      - name: Start the fake API
+        run: node scripts/fake-api.mjs &
+
       # Starts the build on port 3001, runs Lighthouse 3 times per page and checks the minimum
       # scores in lighthouserc.json. The reports go to temporary public storage (about 7 days):
       # the links are printed in this step's log

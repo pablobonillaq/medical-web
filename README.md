@@ -31,12 +31,13 @@ Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appo
 - **Framework:** Next.js 16 (App Router, Cache Components), React 19, TypeScript
 - **Styles:** Tailwind CSS 4, with design tokens in CSS variables
 - **Languages:** Next.js internationalized routing (`app/[lang]`, `next/root-params`, Proxy) and typed dictionaries, with no i18n library
+- **State:** Redux Toolkit (store per page load, typed hooks, thunks)
 - **Validation:** Zod
 - **Testing:** Vitest, Testing Library, MSW (fake API) and V8 coverage; Playwright with axe in Chromium, Firefox, WebKit and a mobile viewport; Lighthouse CI
 - **Code quality:** ESLint and Prettier
 - **CI:** GitHub Actions and SonarQube Cloud
 - **Component library:** class-variance-authority and tailwind-merge, documented in Storybook with accessibility checks (axe)
-- **Coming soon:** Redux Toolkit with thunks and sagas
+- **Coming soon:** redux-saga
 
 ## Requirements
 
@@ -83,6 +84,7 @@ Variables are validated with Zod when the app starts (`src/config/env.ts`): a wr
 | `npm run test:e2e`        | Builds the app and runs the end-to-end tests with Playwright       |
 | `npm run test:e2e:ui`     | Opens the Playwright UI to run and debug end-to-end tests          |
 | `npm run lighthouse`      | Runs Lighthouse CI on the production build (`npm run build` first) |
+| `npm run fake-api`        | Starts a stand-in for the API on port 3000 (only `/health`)        |
 | `npm run storybook`       | Opens Storybook on port 6006                                       |
 | `npm run build-storybook` | Builds the static Storybook site (`storybook-static/`)             |
 
@@ -101,7 +103,7 @@ npx playwright install   # once: downloads the browsers
 npm run test:e2e         # builds the app, starts it on port 3001 and runs the tests
 ```
 
-If `npm run dev` is already running on port 3001, the tests use it instead of building. The HTML report stays in `playwright-report/` (`npx playwright show-report`).
+Playwright also starts a stand-in for the Express API on port 3000 (`scripts/fake-api.mjs`), so the tests need no database. If the real API or `npm run dev` are already running, the tests use them instead. The HTML report stays in `playwright-report/` (`npx playwright show-report`).
 
 ### Lighthouse
 
@@ -109,6 +111,7 @@ If `npm run dev` is already running on port 3001, the tests use it instead of bu
 
 ```bash
 npm run build
+npm run fake-api     # in another terminal, unless the real API is running
 npm run lighthouse   # reports in .lighthouseci/reports/
 ```
 
@@ -157,6 +160,8 @@ docs/
 └── adr/                   # architecture decision records
 e2e/                       # end-to-end and axe tests with Playwright
 mocks/                     # fake API for the tests (MSW)
+scripts/
+└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI
 src/
 ├── api/
 │   └── client.ts          # fetch for /api: JSON in and out, errors as ApiError
@@ -171,6 +176,7 @@ src/
 ├── components/
 │   ├── inline-script.tsx  # script that runs before the first paint, without React's warning
 │   ├── language-switcher.tsx # links to the same page in each language
+│   ├── api-status.tsx     # whether the service is available, in the footer
 │   ├── site-footer.tsx    # footer of every page
 │   ├── site-header.tsx    # banner of every page: link home, theme and language
 │   ├── theme-switcher.tsx # light, dark or system, as native radio buttons
@@ -200,7 +206,13 @@ src/
 │   ├── dictionaries.ts    # language and texts of the current page, on the server
 │   └── negotiate.ts       # picks a language from the cookie and Accept-Language
 ├── lib/
-│   └── cn.ts              # joins classes and resolves Tailwind conflicts
+│   ├── cn.ts              # joins classes and resolves Tailwind conflicts
+│   └── use-hydrated.ts    # whether React has hydrated the page yet
+├── store/
+│   ├── api-status-slice.ts # whether the API answers, with the checkApiHealth thunk
+│   ├── hooks.ts           # typed useAppDispatch, useAppSelector and useAppStore
+│   ├── store-provider.tsx # creates the store once per page load
+│   └── store.ts           # makeStore and the RootState and AppDispatch types
 └── theme/
     ├── theme.ts           # read, save and apply the theme, and the script that runs before paint
     └── use-theme.ts       # React hook, kept in sync across tabs

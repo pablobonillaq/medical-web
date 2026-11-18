@@ -31,12 +31,13 @@ Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agen
 - **Framework:** Next.js 16 (App Router, Cache Components), React 19, TypeScript
 - **Estilos:** Tailwind CSS 4, con tokens de diseño en variables CSS
 - **Idiomas:** rutas internacionalizadas de Next.js (`app/[lang]`, `next/root-params`, Proxy) y diccionarios tipados, sin librería de i18n
+- **Estado:** Redux Toolkit (un store por carga de página, hooks tipados, thunks)
 - **Validación:** Zod
 - **Pruebas:** Vitest, Testing Library, MSW (API simulada) y cobertura con V8; Playwright con axe en Chromium, Firefox, WebKit y una vista de celular; Lighthouse CI
 - **Calidad de código:** ESLint y Prettier
 - **CI:** GitHub Actions y SonarQube Cloud
 - **Librería de componentes:** class-variance-authority y tailwind-merge, documentada en Storybook con revisiones de accesibilidad (axe)
-- **Por agregar:** Redux Toolkit con thunks y sagas
+- **Por agregar:** redux-saga
 
 ## Requisitos
 
@@ -83,6 +84,7 @@ Las variables se validan con Zod al iniciar la app (`src/config/env.ts`): un val
 | `npm run test:e2e`        | Genera el build y ejecuta las pruebas end-to-end con Playwright          |
 | `npm run test:e2e:ui`     | Abre la interfaz de Playwright para correr y depurar pruebas e2e         |
 | `npm run lighthouse`      | Corre Lighthouse CI sobre el build de producción (antes `npm run build`) |
+| `npm run fake-api`        | Inicia un sustituto de la API en el puerto 3000 (solo `/health`)         |
 | `npm run storybook`       | Abre Storybook en el puerto 6006                                         |
 | `npm run build-storybook` | Genera el sitio estático de Storybook (`storybook-static/`)              |
 
@@ -101,7 +103,7 @@ npx playwright install   # una vez: descarga los navegadores
 npm run test:e2e         # genera el build, lo inicia en el puerto 3001 y corre las pruebas
 ```
 
-Si `npm run dev` ya está corriendo en el puerto 3001, las pruebas lo usan en lugar de generar el build. El reporte HTML queda en `playwright-report/` (`npx playwright show-report`).
+Playwright también inicia un sustituto de la API de Express en el puerto 3000 (`scripts/fake-api.mjs`), así las pruebas no necesitan base de datos. Si la API real o `npm run dev` ya están corriendo, las pruebas los usan. El reporte HTML queda en `playwright-report/` (`npx playwright show-report`).
 
 ### Lighthouse
 
@@ -109,6 +111,7 @@ Si `npm run dev` ya está corriendo en el puerto 3001, las pruebas lo usan en lu
 
 ```bash
 npm run build
+npm run fake-api     # en otra terminal, si la API real no está corriendo
 npm run lighthouse   # reportes en .lighthouseci/reports/
 ```
 
@@ -157,6 +160,8 @@ docs/
 └── adr/                   # registros de decisiones de arquitectura
 e2e/                       # pruebas end-to-end y de axe con Playwright
 mocks/                     # API simulada para las pruebas (MSW)
+scripts/
+└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI
 src/
 ├── api/
 │   └── client.ts          # fetch para /api: JSON de ida y vuelta, errores como ApiError
@@ -171,6 +176,7 @@ src/
 ├── components/
 │   ├── inline-script.tsx  # script que corre antes del primer pintado, sin el aviso de React
 │   ├── language-switcher.tsx # enlaces a la misma página en cada idioma
+│   ├── api-status.tsx     # si el servicio está disponible, en el pie
 │   ├── site-footer.tsx    # pie de cada página
 │   ├── site-header.tsx    # encabezado de cada página: enlace al inicio, tema e idioma
 │   ├── theme-switcher.tsx # claro, oscuro o sistema, con botones de radio nativos
@@ -200,7 +206,13 @@ src/
 │   ├── dictionaries.ts    # idioma y textos de la página actual, en el servidor
 │   └── negotiate.ts       # elige el idioma con la cookie y Accept-Language
 ├── lib/
-│   └── cn.ts              # une clases y resuelve los choques de Tailwind
+│   ├── cn.ts              # une clases y resuelve los choques de Tailwind
+│   └── use-hydrated.ts    # si React ya hidrató la página
+├── store/
+│   ├── api-status-slice.ts # si la API responde, con el thunk checkApiHealth
+│   ├── hooks.ts           # useAppDispatch, useAppSelector y useAppStore tipados
+│   ├── store-provider.tsx # crea el store una vez por carga de página
+│   └── store.ts           # makeStore y los tipos RootState y AppDispatch
 └── theme/
     ├── theme.ts           # leer, guardar y aplicar el tema, y el script que corre antes de pintar
     └── use-theme.ts       # hook de React, sincronizado entre pestañas

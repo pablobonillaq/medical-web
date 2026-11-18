@@ -29,11 +29,20 @@ export default defineConfig({
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
   ],
-  webServer: {
-    command: 'npm run build && npm start',
-    url: baseURL,
-    // Locally, an app already running on port 3001 (npm run dev) is used as is
-    reuseExistingServer: !isCI,
-    timeout: 180_000,
-  },
+  webServer: [
+    {
+      // Stands in for the Express API on port 3000 (see scripts/fake-api.mjs). Locally, the real
+      // API is used instead if it is already running
+      command: 'node scripts/fake-api.mjs',
+      url: 'http://localhost:3000/health',
+      reuseExistingServer: !isCI,
+    },
+    {
+      command: 'npm run build && npm start',
+      url: baseURL,
+      // Locally, an app already running on port 3001 (npm run dev) is used as is
+      reuseExistingServer: !isCI,
+      timeout: 180_000,
+    },
+  ],
 })

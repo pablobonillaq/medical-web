@@ -20,6 +20,11 @@ export const es = {
   footer: {
     note: 'Proyecto de portafolio. Todos los datos son ficticios.',
   },
+  apiStatus: {
+    unknown: 'Comprobando el servicio…',
+    online: 'Servicio disponible',
+    offline: 'Servicio no disponible',
+  },
   notFound: {
     title: 'No encontramos esta página',
     description: 'Puede que la dirección esté mal escrita o que la página ya no exista.',

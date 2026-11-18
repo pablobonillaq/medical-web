@@ -18,3 +18,11 @@ test('fits a 320 px wide screen without a horizontal scroll', async ({ page }) =
   )
   expect(overflow).toBe(0)
 })
+
+// The whole data path: the store dispatches a thunk, the client calls /api/health, Next.js
+// forwards it to the API (the fake one in CI) and the footer shows the answer
+test('the footer shows that the service is available', async ({ page }) => {
+  await page.goto('/es')
+
+  await expect(page.getByRole('contentinfo')).toContainText('Servicio disponible')
+})

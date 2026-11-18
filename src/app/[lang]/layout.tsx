@@ -7,6 +7,7 @@ import { SkipLink } from '@/components/ui/skip-link'
 import { ToastProvider } from '@/components/ui/toast'
 import { LOCALES } from '@/i18n/config'
 import { getDictionary, getLocale } from '@/i18n/dictionaries'
+import { StoreProvider } from '@/store/store-provider'
 import { themeScript } from '@/theme/theme'
 import '../globals.css'
 
@@ -50,14 +51,20 @@ export default async function RootLayout({ children }: LayoutProps<'/[lang]'>) {
       </head>
       <body className="flex min-h-full flex-col">
         <SkipLink>{dictionary.skipLink}</SkipLink>
-        <ToastProvider closeLabel={dictionary.toast.close}>
-          <SiteHeader locale={locale} dictionary={dictionary} />
-          {/* The target of the skip link. tabIndex -1 lets it take the focus without a Tab stop */}
-          <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
-            {children}
-          </main>
-          <SiteFooter note={dictionary.footer.note} />
-        </ToastProvider>
+        <StoreProvider>
+          <ToastProvider closeLabel={dictionary.toast.close}>
+            <SiteHeader locale={locale} dictionary={dictionary} />
+            {/* The target of the skip link. tabIndex -1 lets it take the focus without a Tab stop */}
+            <main
+              id="main-content"
+              tabIndex={-1}
+              className="flex flex-1 flex-col focus:outline-none"
+            >
+              {children}
+            </main>
+            <SiteFooter dictionary={dictionary} />
+          </ToastProvider>
+        </StoreProvider>
       </body>
     </html>
   )

@@ -21,6 +21,11 @@ export const en: Dictionary = {
   footer: {
     note: 'Portfolio project. All data is fictitious.',
   },
+  apiStatus: {
+    unknown: 'Checking the service…',
+    online: 'Service available',
+    offline: 'Service unavailable',
+  },
   notFound: {
     title: "We couldn't find this page",
     description: 'The address may be misspelled, or the page may no longer exist.',
