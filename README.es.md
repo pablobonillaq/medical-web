@@ -8,7 +8,7 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 (configuración base) y 2 (sistema de diseño) completadas; Fase 3 (idiomas y estructura) completada; Fase 4 (capa de datos) completada; sigue la Fase 5 (autenticación).
+> **Estado:** en desarrollo. Fases 1 (configuración base) y 2 (sistema de diseño) completadas; Fase 3 (idiomas y estructura) completada; Fase 4 (capa de datos) completada; Fase 5 (autenticación) en curso.
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
@@ -164,6 +164,10 @@ scripts/
 src/
 ├── api/
 │   └── client.ts          # fetch para /api: JSON de ida y vuelta, errores como ApiError
+├── auth/
+│   ├── session.ts         # getSession(): quién inició sesión, preguntado a la API en el servidor
+│   ├── token.ts           # cuándo vence el token de la sesión
+│   └── types.ts           # roles, SessionUser y Session
 ├── app/                   # rutas (App Router)
 │   ├── globals.css        # Tailwind y tokens de diseño (colores con light-dark())
 │   ├── globals.test.ts    # revisa el contraste WCAG de cada par de colores, en los dos temas
@@ -227,13 +231,14 @@ vitest.config.mts          # pruebas unitarias y el umbral de 100 % de cobertura
 
 Están escritas en inglés, como el código.
 
-| ADR                                                 | Decisión                                                                        |
-| --------------------------------------------------- | ------------------------------------------------------------------------------- |
-| [0001](docs/adr/0001-nextjs-app-router.md)          | Next.js App Router con Cache Components, en el mismo origen que la API          |
-| [0002](docs/adr/0002-tailwind-component-library.md) | Librería de componentes con Tailwind y variantes tipadas, sin styled-components |
-| [0003](docs/adr/0003-redux-thunks-and-sagas.md)     | Redux Toolkit: thunks para peticiones, sagas para flujos largos                 |
-| [0004](docs/adr/0004-testing-strategy.md)           | Estrategia de pruebas y 100 % de cobertura                                      |
-| [0005](docs/adr/0005-i18n-without-a-library.md)     | Español e inglés con las rutas de Next.js y diccionarios tipados, sin librería  |
+| ADR                                                  | Decisión                                                                                  |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [0001](docs/adr/0001-nextjs-app-router.md)           | Next.js App Router con Cache Components, en el mismo origen que la API                    |
+| [0002](docs/adr/0002-tailwind-component-library.md)  | Librería de componentes con Tailwind y variantes tipadas, sin styled-components           |
+| [0003](docs/adr/0003-redux-thunks-and-sagas.md)      | Redux Toolkit: thunks para peticiones, sagas para flujos largos                           |
+| [0004](docs/adr/0004-testing-strategy.md)            | Estrategia de pruebas y 100 % de cobertura                                                |
+| [0005](docs/adr/0005-i18n-without-a-library.md)      | Español e inglés con las rutas de Next.js y diccionarios tipados, sin librería            |
+| [0006](docs/adr/0006-session-from-the-api-cookie.md) | Sesión: la cookie httpOnly de la API, leída en el servidor con una capa de acceso a datos |
 
 ## Roadmap
 
@@ -241,7 +246,7 @@ Están escritas en inglés, como el código.
 2. ~~Sistema de diseño: tokens, temas claro y oscuro, librería de componentes, Storybook~~ ✅
 3. ~~Idiomas y estructura: español e inglés, layout, Playwright con axe, Lighthouse CI~~ ✅
 4. ~~Capa de datos: store de Redux Toolkit, cliente de la API, thunks, sagas y MSW~~ ✅
-5. Autenticación: inicio de sesión, registro, cierre de sesión, rutas protegidas, navegación por rol, vencimiento de sesión
+5. Autenticación: inicio de sesión, registro, cierre de sesión, rutas protegidas, navegación por rol, vencimiento de sesión — en curso
 6. Páginas públicas: inicio, servicios y médicos
 7. Área del paciente: perfil, reservas, mis citas, registro de accesos
 8. Recepción: búsqueda de pacientes, pacientes sin cuenta, reservas para un paciente, agenda del día

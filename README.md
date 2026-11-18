@@ -8,7 +8,7 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phases 1 (base setup) and 2 (design system) completed; Phase 3 (languages and app shell) completed; Phase 4 (data layer) completed; Phase 5 (authentication) next.
+> **Status:** in development. Phases 1 (base setup) and 2 (design system) completed; Phase 3 (languages and app shell) completed; Phase 4 (data layer) completed; Phase 5 (authentication) in progress.
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
@@ -164,6 +164,10 @@ scripts/
 src/
 ├── api/
 │   └── client.ts          # fetch for /api: JSON in and out, errors as ApiError
+├── auth/
+│   ├── session.ts         # getSession(): who is signed in, asked to the API on the server
+│   ├── token.ts           # when the session token expires
+│   └── types.ts           # roles, SessionUser and Session
 ├── app/                   # routes (App Router)
 │   ├── globals.css        # Tailwind and design tokens (light-dark() colors)
 │   ├── globals.test.ts    # checks the WCAG contrast of every color pair, in both themes
@@ -225,13 +229,14 @@ vitest.config.mts          # unit tests and the 100% coverage threshold
 
 ## Architecture decisions
 
-| ADR                                                 | Decision                                                                        |
-| --------------------------------------------------- | ------------------------------------------------------------------------------- |
-| [0001](docs/adr/0001-nextjs-app-router.md)          | Next.js App Router with Cache Components, same origin as the API                |
-| [0002](docs/adr/0002-tailwind-component-library.md) | Component library with Tailwind and typed variants instead of styled-components |
-| [0003](docs/adr/0003-redux-thunks-and-sagas.md)     | Redux Toolkit: thunks for requests, sagas for long-running flows                |
-| [0004](docs/adr/0004-testing-strategy.md)           | Testing strategy and 100% coverage                                              |
-| [0005](docs/adr/0005-i18n-without-a-library.md)     | Spanish and English with Next.js routing and typed dictionaries, no library     |
+| ADR                                                  | Decision                                                                           |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [0001](docs/adr/0001-nextjs-app-router.md)           | Next.js App Router with Cache Components, same origin as the API                   |
+| [0002](docs/adr/0002-tailwind-component-library.md)  | Component library with Tailwind and typed variants instead of styled-components    |
+| [0003](docs/adr/0003-redux-thunks-and-sagas.md)      | Redux Toolkit: thunks for requests, sagas for long-running flows                   |
+| [0004](docs/adr/0004-testing-strategy.md)            | Testing strategy and 100% coverage                                                 |
+| [0005](docs/adr/0005-i18n-without-a-library.md)      | Spanish and English with Next.js routing and typed dictionaries, no library        |
+| [0006](docs/adr/0006-session-from-the-api-cookie.md) | Session: the API's httpOnly cookie, read on the server through a Data Access Layer |
 
 ## Roadmap
 
@@ -239,7 +244,7 @@ vitest.config.mts          # unit tests and the 100% coverage threshold
 2. ~~Design system: tokens, light and dark themes, component library, Storybook~~ ✅
 3. ~~Languages and app shell: Spanish and English, layout, Playwright with axe, Lighthouse CI~~ ✅
 4. ~~Data layer: Redux Toolkit store, API client, thunks, sagas and MSW~~ ✅
-5. Authentication: sign in, sign-up, sign-out, protected routes, navigation by role, session expiry
+5. Authentication: sign in, sign-up, sign-out, protected routes, navigation by role, session expiry — in progress
 6. Public pages: home, services and doctors
 7. Patient area: profile, booking, my appointments, access log
 8. Front desk: patient search, walk-in patients, booking for a patient, daily agenda
