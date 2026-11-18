@@ -16,7 +16,7 @@ Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appo
 - [x] Light, dark or system theme, with no flash on load
 - [x] Component library with typed variants, documented in Storybook
 - [x] Spanish and English (`/es`, `/en`), with the language chosen from the browser or the last visit
-- [ ] Sign in, patient sign-up and sign-out; routes protected by role on the server
+- [ ] Sign in (done), patient sign-up and sign-out; routes protected by role on the server
 - [ ] Public pages: home, services and doctors
 - [ ] Patients: book, cancel, reschedule and confirm appointments; see who opened their record
 - [ ] Front desk: patient search, walk-in patients, booking for a patient, daily agenda
@@ -83,7 +83,7 @@ Variables are validated with Zod when the app starts (`src/config/env.ts`): a wr
 | `npm run test:e2e`        | Builds the app and runs the end-to-end tests with Playwright       |
 | `npm run test:e2e:ui`     | Opens the Playwright UI to run and debug end-to-end tests          |
 | `npm run lighthouse`      | Runs Lighthouse CI on the production build (`npm run build` first) |
-| `npm run fake-api`        | Starts a stand-in for the API on port 3000 (only `/health`)        |
+| `npm run fake-api`        | Starts a stand-in for the API on port 3000 (health and sign-in)    |
 | `npm run storybook`       | Opens Storybook on port 6006                                       |
 | `npm run build-storybook` | Builds the static Storybook site (`storybook-static/`)             |
 
@@ -160,11 +160,13 @@ docs/
 e2e/                       # end-to-end and axe tests with Playwright
 mocks/                     # fake API for the tests (MSW)
 scripts/
-└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI
+└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, sign-in)
 src/
 ├── api/
 │   └── client.ts          # fetch for /api: JSON in and out, errors as ApiError
 ├── auth/
+│   ├── login-schema.ts    # the sign-in rules of the API, checked before sending
+│   ├── redirect.ts        # where to go after signing in, never outside the site
 │   ├── session.ts         # getSession(): who is signed in, asked to the API on the server
 │   ├── token.ts           # when the session token expires
 │   └── types.ts           # roles, SessionUser and Session
@@ -174,11 +176,13 @@ src/
 │   └── [lang]/            # every page, under /es or /en
 │       ├── [...rest]/     # any address that matches no page: a 404
 │       ├── layout.tsx     # root layout: <html lang>, header, main region, footer, toasts
+│       ├── login/         # sign-in page
 │       ├── not-found.tsx  # 404 page, inside the layout and in the language of the URL
 │       └── page.tsx       # home page
 ├── components/
 │   ├── inline-script.tsx  # script that runs before the first paint, without React's warning
 │   ├── language-switcher.tsx # links to the same page in each language
+│   ├── login-form.tsx     # sign-in form: errors next to each field, announced failures
 │   ├── api-status.tsx     # whether the service is available, in the footer
 │   ├── site-footer.tsx    # footer of every page
 │   ├── site-header.tsx    # banner of every page: link home, theme and language
@@ -215,6 +219,7 @@ src/
 │   ├── api-health-saga.ts # checks the API every minute, backs off on failures, pauses in hidden tabs
 │   ├── api-status-slice.ts # whether the API answers, with the checkApiHealth thunk
 │   ├── hooks.ts           # typed useAppDispatch, useAppSelector and useAppStore
+│   ├── session-slice.ts   # who signed in, with the signIn thunk
 │   ├── store-provider.tsx # creates the store once per page load and starts the sagas
 │   └── store.ts           # makeStore (thunks and sagas) and the RootState and AppDispatch types
 └── theme/

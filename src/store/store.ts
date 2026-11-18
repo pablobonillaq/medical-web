@@ -3,9 +3,10 @@ import createSagaMiddleware, { type SagaIterator } from 'redux-saga'
 import { all, call } from 'redux-saga/effects'
 import { apiHealthSaga } from './api-health-saga'
 import { apiStatusSlice } from './api-status-slice'
+import { sessionSlice } from './session-slice'
 
-// Each slice keeps its state under its own name: state.apiStatus
-const rootReducer = combineSlices(apiStatusSlice)
+// Each slice keeps its state under its own name: state.apiStatus, state.session
+const rootReducer = combineSlices(apiStatusSlice, sessionSlice)
 
 export type RootState = ReturnType<typeof rootReducer>
 

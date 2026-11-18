@@ -16,7 +16,7 @@ Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agen
 - [x] Tema claro, oscuro o el del sistema, sin parpadeo al cargar
 - [ ] Librería de componentes con variantes tipadas, documentada en Storybook
 - [x] Español e inglés (`/es`, `/en`), con el idioma elegido según el navegador o la última visita
-- [ ] Inicio de sesión, registro de pacientes y cierre de sesión; rutas protegidas por rol desde el servidor
+- [ ] Inicio de sesión (listo), registro de pacientes y cierre de sesión; rutas protegidas por rol desde el servidor
 - [ ] Páginas públicas: inicio, servicios y médicos
 - [ ] Pacientes: reservar, cancelar, reprogramar y confirmar citas; ver quién abrió su expediente
 - [ ] Recepción: búsqueda de pacientes, pacientes sin cuenta, reservas para un paciente, agenda del día
@@ -68,24 +68,24 @@ Las variables se validan con Zod al iniciar la app (`src/config/env.ts`): un val
 
 ## Scripts
 
-| Comando                   | Descripción                                                              |
-| ------------------------- | ------------------------------------------------------------------------ |
-| `npm run dev`             | Inicia el servidor de desarrollo en el puerto 3001                       |
-| `npm run build`           | Genera el build de producción                                            |
-| `npm start`               | Sirve el build de producción en el puerto 3001                           |
-| `npm run typecheck`       | Genera los tipos de las rutas y revisa los tipos                         |
-| `npm run lint`            | Revisa el código con ESLint                                              |
-| `npm run format`          | Formatea el código con Prettier (y ordena las clases de Tailwind)        |
-| `npm run check`           | Ejecuta typecheck, lint, la revisión de formato y las pruebas            |
-| `npm test`                | Ejecuta las pruebas                                                      |
-| `npm run test:watch`      | Ejecuta las pruebas en modo watch                                        |
-| `npm run test:coverage`   | Ejecuta las pruebas y genera el reporte de cobertura (`coverage/`)       |
-| `npm run test:e2e`        | Genera el build y ejecuta las pruebas end-to-end con Playwright          |
-| `npm run test:e2e:ui`     | Abre la interfaz de Playwright para correr y depurar pruebas e2e         |
-| `npm run lighthouse`      | Corre Lighthouse CI sobre el build de producción (antes `npm run build`) |
-| `npm run fake-api`        | Inicia un sustituto de la API en el puerto 3000 (solo `/health`)         |
-| `npm run storybook`       | Abre Storybook en el puerto 6006                                         |
-| `npm run build-storybook` | Genera el sitio estático de Storybook (`storybook-static/`)              |
+| Comando                   | Descripción                                                                |
+| ------------------------- | -------------------------------------------------------------------------- |
+| `npm run dev`             | Inicia el servidor de desarrollo en el puerto 3001                         |
+| `npm run build`           | Genera el build de producción                                              |
+| `npm start`               | Sirve el build de producción en el puerto 3001                             |
+| `npm run typecheck`       | Genera los tipos de las rutas y revisa los tipos                           |
+| `npm run lint`            | Revisa el código con ESLint                                                |
+| `npm run format`          | Formatea el código con Prettier (y ordena las clases de Tailwind)          |
+| `npm run check`           | Ejecuta typecheck, lint, la revisión de formato y las pruebas              |
+| `npm test`                | Ejecuta las pruebas                                                        |
+| `npm run test:watch`      | Ejecuta las pruebas en modo watch                                          |
+| `npm run test:coverage`   | Ejecuta las pruebas y genera el reporte de cobertura (`coverage/`)         |
+| `npm run test:e2e`        | Genera el build y ejecuta las pruebas end-to-end con Playwright            |
+| `npm run test:e2e:ui`     | Abre la interfaz de Playwright para correr y depurar pruebas e2e           |
+| `npm run lighthouse`      | Corre Lighthouse CI sobre el build de producción (antes `npm run build`)   |
+| `npm run fake-api`        | Inicia un sustituto de la API en el puerto 3000 (salud e inicio de sesión) |
+| `npm run storybook`       | Abre Storybook en el puerto 6006                                           |
+| `npm run build-storybook` | Genera el sitio estático de Storybook (`storybook-static/`)                |
 
 ## Pruebas
 
@@ -160,11 +160,13 @@ docs/
 e2e/                       # pruebas end-to-end y de axe con Playwright
 mocks/                     # API simulada para las pruebas (MSW)
 scripts/
-└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI
+└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, inicio de sesión)
 src/
 ├── api/
 │   └── client.ts          # fetch para /api: JSON de ida y vuelta, errores como ApiError
 ├── auth/
+│   ├── login-schema.ts    # las reglas de inicio de sesión de la API, revisadas antes de enviar
+│   ├── redirect.ts        # a dónde ir después de iniciar sesión, nunca fuera del sitio
 │   ├── session.ts         # getSession(): quién inició sesión, preguntado a la API en el servidor
 │   ├── token.ts           # cuándo vence el token de la sesión
 │   └── types.ts           # roles, SessionUser y Session
@@ -174,11 +176,13 @@ src/
 │   └── [lang]/            # todas las páginas, bajo /es o /en
 │       ├── [...rest]/     # cualquier dirección que no sea una página: un 404
 │       ├── layout.tsx     # layout raíz: <html lang>, encabezado, región principal, pie, avisos
+│       ├── login/         # página de inicio de sesión
 │       ├── not-found.tsx  # página 404, dentro del layout y en el idioma de la URL
 │       └── page.tsx       # página de inicio
 ├── components/
 │   ├── inline-script.tsx  # script que corre antes del primer pintado, sin el aviso de React
 │   ├── language-switcher.tsx # enlaces a la misma página en cada idioma
+│   ├── login-form.tsx     # formulario de inicio de sesión: errores junto a cada campo, fallas anunciadas
 │   ├── api-status.tsx     # si el servicio está disponible, en el pie
 │   ├── site-footer.tsx    # pie de cada página
 │   ├── site-header.tsx    # encabezado de cada página: enlace al inicio, tema e idioma
@@ -215,6 +219,7 @@ src/
 │   ├── api-health-saga.ts # revisa la API cada minuto, espera más tras fallas, se pausa en pestañas ocultas
 │   ├── api-status-slice.ts # si la API responde, con el thunk checkApiHealth
 │   ├── hooks.ts           # useAppDispatch, useAppSelector y useAppStore tipados
+│   ├── session-slice.ts   # quién inició sesión, con el thunk signIn
 │   ├── store-provider.tsx # crea el store una vez por carga de página e inicia las sagas
 │   └── store.ts           # makeStore (thunks y sagas) y los tipos RootState y AppDispatch
 └── theme/

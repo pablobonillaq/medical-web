@@ -33,6 +33,33 @@ export const es = {
     description: 'Puede que la dirección esté mal escrita o que la página ya no exista.',
     home: 'Volver al inicio',
   },
+  login: {
+    title: 'Iniciar sesión',
+    intro: 'Entra con el correo y la contraseña de tu cuenta.',
+    email: 'Correo electrónico',
+    password: 'Contraseña',
+    submit: 'Iniciar sesión',
+    submitting: 'iniciando sesión',
+    fieldErrors: {
+      email: {
+        required: 'Escribe tu correo electrónico.',
+        invalid: 'Escribe un correo válido, como nombre@ejemplo.com.',
+      },
+      password: {
+        required: 'Escribe tu contraseña.',
+        tooShort: 'La contraseña tiene al menos 8 caracteres.',
+        tooLong: 'La contraseña tiene como máximo 72 caracteres.',
+      },
+    },
+    errorTitle: 'No pudimos iniciar tu sesión',
+    errors: {
+      invalidCredentials: 'El correo o la contraseña no coinciden. Revísalos e inténtalo de nuevo.',
+      disabled: 'Tu cuenta está desactivada. Comunícate con la recepción de la clínica.',
+      tooManyAttempts: 'Hubo demasiados intentos. Espera 15 minutos e inténtalo de nuevo.',
+      network: 'No pudimos conectar con el servicio. Revisa tu conexión e inténtalo de nuevo.',
+      unknown: 'Algo salió mal. Inténtalo de nuevo en unos minutos.',
+    },
+  },
   home: {
     title: 'Clínica',
     intro: 'Agenda tus citas, consulta tu expediente y escribe a la recepción desde un solo lugar.',
