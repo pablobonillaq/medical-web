@@ -1,5 +1,6 @@
-import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { render, waitFor } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { selectApiStatus } from './api-status-slice'
 import { useAppStore } from './hooks'
 import type { AppStore } from './store'
 import { StoreProvider } from './store-provider'
@@ -43,5 +44,23 @@ describe('StoreProvider', () => {
     )
 
     expect(stores[1]).not.toBe(stores[0])
+  })
+
+  it('starts the sagas in the browser and stops them when the page goes away', async () => {
+    stores.length = 0
+    const removeListener = vi.spyOn(document, 'removeEventListener')
+    const { unmount } = render(
+      <StoreProvider>
+        <StoreProbe />
+      </StoreProvider>,
+    )
+
+    // The saga that watches the API made its first check
+    await waitFor(() => {
+      expect(selectApiStatus(stores[0].getState())).toBe('online')
+    })
+
+    unmount()
+    expect(removeListener).toHaveBeenCalledWith('visibilitychange', expect.any(Function))
   })
 })

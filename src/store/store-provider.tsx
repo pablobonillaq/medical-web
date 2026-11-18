@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Provider } from 'react-redux'
 import { makeStore } from './store'
 
@@ -8,6 +8,14 @@ import { makeStore } from './store'
 // the same store across re-renders. Data loaded on the server reaches components as props
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [store] = useState(makeStore)
+
+  // The sagas run in the browser only, and stop when the page goes away
+  useEffect(() => {
+    const task = store.runSagas()
+    return () => {
+      task.cancel()
+    }
+  }, [store])
 
   return <Provider store={store}>{children}</Provider>
 }

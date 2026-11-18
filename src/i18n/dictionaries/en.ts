@@ -25,6 +25,9 @@ export const en: Dictionary = {
     unknown: 'Checking the service…',
     online: 'Service available',
     offline: 'Service unavailable',
+    retry: 'Try again',
+    lost: 'The connection to the service was lost',
+    restored: 'The connection to the service is back',
   },
   notFound: {
     title: "We couldn't find this page",

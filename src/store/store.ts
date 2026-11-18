@@ -1,4 +1,7 @@
 import { combineSlices, configureStore } from '@reduxjs/toolkit'
+import createSagaMiddleware, { type SagaIterator } from 'redux-saga'
+import { all, call } from 'redux-saga/effects'
+import { apiHealthSaga } from './api-health-saga'
 import { apiStatusSlice } from './api-status-slice'
 
 // Each slice keeps its state under its own name: state.apiStatus
@@ -6,10 +9,25 @@ const rootReducer = combineSlices(apiStatusSlice)
 
 export type RootState = ReturnType<typeof rootReducer>
 
+function* rootSaga(): SagaIterator {
+  yield all([call(apiHealthSaga)])
+}
+
 // A new store for each visitor: StoreProvider creates one per page load, so on the server a
-// store is never shared between requests (see ADR 0003). Tests start from any state they need
-export const makeStore = (preloadedState?: Partial<RootState>) =>
-  configureStore({ reducer: rootReducer, preloadedState })
+// store is never shared between requests (see ADR 0003). Tests start from any state they need.
+// Thunks come with Redux Toolkit; the saga middleware is added for the long-running flows
+export const makeStore = (preloadedState?: Partial<RootState>) => {
+  const sagaMiddleware = createSagaMiddleware()
+  const store = configureStore({
+    reducer: rootReducer,
+    preloadedState,
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware),
+  })
+
+  // The sagas are not started here: on the server they would call the API on every render.
+  // StoreProvider starts them in the browser, once the page has hydrated
+  return Object.assign(store, { runSagas: () => sagaMiddleware.run(rootSaga) })
+}
 
 export type AppStore = ReturnType<typeof makeStore>
 export type AppDispatch = AppStore['dispatch']

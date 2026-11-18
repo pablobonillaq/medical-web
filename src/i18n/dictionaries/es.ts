@@ -24,6 +24,9 @@ export const es = {
     unknown: 'Comprobando el servicio…',
     online: 'Servicio disponible',
     offline: 'Servicio no disponible',
+    retry: 'Reintentar',
+    lost: 'Se perdió la conexión con el servicio',
+    restored: 'La conexión con el servicio volvió',
   },
   notFound: {
     title: 'No encontramos esta página',

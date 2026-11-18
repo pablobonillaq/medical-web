@@ -8,7 +8,7 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phases 1 (base setup) and 2 (design system) completed; Phase 3 (languages and app shell) completed; Phase 4 (data layer) in progress.
+> **Status:** in development. Phases 1 (base setup) and 2 (design system) completed; Phase 3 (languages and app shell) completed; Phase 4 (data layer) completed; Phase 5 (authentication) next.
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
@@ -31,13 +31,12 @@ Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appo
 - **Framework:** Next.js 16 (App Router, Cache Components), React 19, TypeScript
 - **Styles:** Tailwind CSS 4, with design tokens in CSS variables
 - **Languages:** Next.js internationalized routing (`app/[lang]`, `next/root-params`, Proxy) and typed dictionaries, with no i18n library
-- **State:** Redux Toolkit (store per page load, typed hooks, thunks)
+- **State:** Redux Toolkit (store per page load, typed hooks, thunks) and redux-saga for long-running flows
 - **Validation:** Zod
-- **Testing:** Vitest, Testing Library, MSW (fake API) and V8 coverage; Playwright with axe in Chromium, Firefox, WebKit and a mobile viewport; Lighthouse CI
+- **Testing:** Vitest, Testing Library, MSW (fake API), redux-saga-test-plan and V8 coverage; Playwright with axe in Chromium, Firefox, WebKit and a mobile viewport; Lighthouse CI
 - **Code quality:** ESLint and Prettier
 - **CI:** GitHub Actions and SonarQube Cloud
 - **Component library:** class-variance-authority and tailwind-merge, documented in Storybook with accessibility checks (axe)
-- **Coming soon:** redux-saga
 
 ## Requirements
 
@@ -209,10 +208,11 @@ src/
 │   ├── cn.ts              # joins classes and resolves Tailwind conflicts
 │   └── use-hydrated.ts    # whether React has hydrated the page yet
 ├── store/
+│   ├── api-health-saga.ts # checks the API every minute, backs off on failures, pauses in hidden tabs
 │   ├── api-status-slice.ts # whether the API answers, with the checkApiHealth thunk
 │   ├── hooks.ts           # typed useAppDispatch, useAppSelector and useAppStore
-│   ├── store-provider.tsx # creates the store once per page load
-│   └── store.ts           # makeStore and the RootState and AppDispatch types
+│   ├── store-provider.tsx # creates the store once per page load and starts the sagas
+│   └── store.ts           # makeStore (thunks and sagas) and the RootState and AppDispatch types
 └── theme/
     ├── theme.ts           # read, save and apply the theme, and the script that runs before paint
     └── use-theme.ts       # React hook, kept in sync across tabs
@@ -238,7 +238,7 @@ vitest.config.mts          # unit tests and the 100% coverage threshold
 1. ~~Base setup: Next.js, Prettier, Vitest with 100% coverage, CI and SonarQube, connection to the API~~ ✅
 2. ~~Design system: tokens, light and dark themes, component library, Storybook~~ ✅
 3. ~~Languages and app shell: Spanish and English, layout, Playwright with axe, Lighthouse CI~~ ✅
-4. Data layer: Redux Toolkit store, API client, thunks, sagas and MSW — in progress
+4. ~~Data layer: Redux Toolkit store, API client, thunks, sagas and MSW~~ ✅
 5. Authentication: sign in, sign-up, sign-out, protected routes, navigation by role, session expiry
 6. Public pages: home, services and doctors
 7. Patient area: profile, booking, my appointments, access log

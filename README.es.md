@@ -8,7 +8,7 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 (configuración base) y 2 (sistema de diseño) completadas; Fase 3 (idiomas y estructura) completada; Fase 4 (capa de datos) en curso.
+> **Estado:** en desarrollo. Fases 1 (configuración base) y 2 (sistema de diseño) completadas; Fase 3 (idiomas y estructura) completada; Fase 4 (capa de datos) completada; sigue la Fase 5 (autenticación).
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
@@ -31,13 +31,12 @@ Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agen
 - **Framework:** Next.js 16 (App Router, Cache Components), React 19, TypeScript
 - **Estilos:** Tailwind CSS 4, con tokens de diseño en variables CSS
 - **Idiomas:** rutas internacionalizadas de Next.js (`app/[lang]`, `next/root-params`, Proxy) y diccionarios tipados, sin librería de i18n
-- **Estado:** Redux Toolkit (un store por carga de página, hooks tipados, thunks)
+- **Estado:** Redux Toolkit (un store por carga de página, hooks tipados, thunks) y redux-saga para los flujos de larga duración
 - **Validación:** Zod
-- **Pruebas:** Vitest, Testing Library, MSW (API simulada) y cobertura con V8; Playwright con axe en Chromium, Firefox, WebKit y una vista de celular; Lighthouse CI
+- **Pruebas:** Vitest, Testing Library, MSW (API simulada), redux-saga-test-plan y cobertura con V8; Playwright con axe en Chromium, Firefox, WebKit y una vista de celular; Lighthouse CI
 - **Calidad de código:** ESLint y Prettier
 - **CI:** GitHub Actions y SonarQube Cloud
 - **Librería de componentes:** class-variance-authority y tailwind-merge, documentada en Storybook con revisiones de accesibilidad (axe)
-- **Por agregar:** redux-saga
 
 ## Requisitos
 
@@ -209,10 +208,11 @@ src/
 │   ├── cn.ts              # une clases y resuelve los choques de Tailwind
 │   └── use-hydrated.ts    # si React ya hidrató la página
 ├── store/
+│   ├── api-health-saga.ts # revisa la API cada minuto, espera más tras fallas, se pausa en pestañas ocultas
 │   ├── api-status-slice.ts # si la API responde, con el thunk checkApiHealth
 │   ├── hooks.ts           # useAppDispatch, useAppSelector y useAppStore tipados
-│   ├── store-provider.tsx # crea el store una vez por carga de página
-│   └── store.ts           # makeStore y los tipos RootState y AppDispatch
+│   ├── store-provider.tsx # crea el store una vez por carga de página e inicia las sagas
+│   └── store.ts           # makeStore (thunks y sagas) y los tipos RootState y AppDispatch
 └── theme/
     ├── theme.ts           # leer, guardar y aplicar el tema, y el script que corre antes de pintar
     └── use-theme.ts       # hook de React, sincronizado entre pestañas
@@ -240,7 +240,7 @@ Están escritas en inglés, como el código.
 1. ~~Configuración base: Next.js, Prettier, Vitest con 100 % de cobertura, CI y SonarQube, conexión con la API~~ ✅
 2. ~~Sistema de diseño: tokens, temas claro y oscuro, librería de componentes, Storybook~~ ✅
 3. ~~Idiomas y estructura: español e inglés, layout, Playwright con axe, Lighthouse CI~~ ✅
-4. Capa de datos: store de Redux Toolkit, cliente de la API, thunks, sagas y MSW — en curso
+4. ~~Capa de datos: store de Redux Toolkit, cliente de la API, thunks, sagas y MSW~~ ✅
 5. Autenticación: inicio de sesión, registro, cierre de sesión, rutas protegidas, navegación por rol, vencimiento de sesión
 6. Páginas públicas: inicio, servicios y médicos
 7. Área del paciente: perfil, reservas, mis citas, registro de accesos

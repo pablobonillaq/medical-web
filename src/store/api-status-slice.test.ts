@@ -2,44 +2,65 @@ import { server } from '@mocks/node'
 import { http, HttpResponse } from 'msw/http'
 import { describe, expect, it } from 'vitest'
 import { makeStore } from './store'
-import { checkApiHealth, selectApiStatus } from './api-status-slice'
+import {
+  checkApiHealth,
+  fetchApiStatus,
+  selectApiChecking,
+  selectApiStatus,
+  statusChecked,
+} from './api-status-slice'
 
-// The real store, with the fake API answering
-const checkWith = async (answer?: () => Response) => {
-  if (answer) server.use(http.get('*/api/health', answer))
-  const store = makeStore()
-  await store.dispatch(checkApiHealth())
-  return selectApiStatus(store.getState())
-}
+const answer = (response: () => Response) => server.use(http.get('*/api/health', response))
 
-describe('apiStatus', () => {
-  it('starts unknown, before the first check', () => {
-    expect(selectApiStatus(makeStore().getState())).toBe('unknown')
-  })
-
+describe('fetchApiStatus', () => {
   it('is online when the API and its database answer', async () => {
-    await expect(checkWith()).resolves.toBe('online')
+    await expect(fetchApiStatus()).resolves.toBe('online')
   })
 
   it('is offline when the API answers that its database is down', async () => {
-    await expect(
-      checkWith(() => HttpResponse.json({ status: 'error', database: 'down' }, { status: 503 })),
-    ).resolves.toBe('offline')
+    answer(() => HttpResponse.json({ status: 'error', database: 'down' }, { status: 503 }))
+
+    await expect(fetchApiStatus()).resolves.toBe('offline')
   })
 
   it('is offline when the answer does not say ok', async () => {
-    await expect(checkWith(() => HttpResponse.json({ status: 'error' }))).resolves.toBe('offline')
+    answer(() => HttpResponse.json({ status: 'error' }))
+
+    await expect(fetchApiStatus()).resolves.toBe('offline')
   })
 
   it('is offline when the API cannot be reached', async () => {
-    await expect(checkWith(() => HttpResponse.error())).resolves.toBe('offline')
+    answer(() => HttpResponse.error())
+
+    await expect(fetchApiStatus()).resolves.toBe('offline')
+  })
+})
+
+describe('apiStatus', () => {
+  it('starts unknown, before the first check', () => {
+    const state = makeStore().getState()
+
+    expect(selectApiStatus(state)).toBe('unknown')
+    expect(selectApiChecking(state)).toBe(false)
   })
 
-  it('keeps the last known status while a new check runs', async () => {
-    const store = makeStore({ apiStatus: { status: 'online' } })
+  it('records the checks of the saga', () => {
+    const store = makeStore()
+
+    store.dispatch(statusChecked('offline'))
+
+    expect(selectApiStatus(store.getState())).toBe('offline')
+  })
+
+  it('marks a check asked for by the visitor while it runs, keeping the last status', async () => {
+    const store = makeStore({ apiStatus: { status: 'offline', checking: false } })
 
     const check = store.dispatch(checkApiHealth())
-    expect(selectApiStatus(store.getState())).toBe('online')
+    expect(selectApiChecking(store.getState())).toBe(true)
+    expect(selectApiStatus(store.getState())).toBe('offline')
+
     await check
+    expect(selectApiChecking(store.getState())).toBe(false)
+    expect(selectApiStatus(store.getState())).toBe('online')
   })
 })
