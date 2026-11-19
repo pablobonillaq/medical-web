@@ -1,20 +1,18 @@
 import { z } from 'zod'
 
-// The same rules as the API (medical-api, users.schema.ts), checked before sending, so the
-// visitor gets the error next to the field at once. The API checks them again.
-// The messages are keys of the dictionary (login.fieldErrors), not texts
-export const loginSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .min(1, { error: 'required' })
-    .pipe(z.email({ error: 'invalid' })),
-  password: z
-    .string()
-    .min(1, { error: 'required' })
-    .min(8, { error: 'tooShort' })
-    .max(72, { error: 'tooLong' }),
-})
+export const emailField = z
+  .string()
+  .trim()
+  .min(1, { error: 'required' })
+  .pipe(z.email({ error: 'invalid' }))
+
+export const passwordField = z
+  .string()
+  .min(1, { error: 'required' })
+  .min(8, { error: 'tooShort' })
+  .max(72, { error: 'tooLong' })
+
+export const loginSchema = z.object({ email: emailField, password: passwordField })
 
 export type LoginValues = z.infer<typeof loginSchema>
 

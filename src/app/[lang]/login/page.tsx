@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { LoginForm } from '@/components/login-form'
 import { getDictionary, getLocale } from '@/i18n/dictionaries'
 
@@ -20,6 +21,12 @@ export default async function LoginPage() {
         <p className="text-muted-foreground">{login.intro}</p>
       </div>
       <LoginForm labels={login} locale={locale} />
+      <p className="text-sm">
+        {login.noAccount}{' '}
+        <Link href={`/${locale}/register`} className="font-medium text-primary underline">
+          {login.register}
+        </Link>
+      </p>
     </div>
   )
 }

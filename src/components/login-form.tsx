@@ -1,12 +1,13 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { validateLogin, type LoginFieldErrors } from '@/auth/login-schema'
 import { safeRedirectPath } from '@/auth/redirect'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useFocusFirstInvalid } from '@/lib/use-focus-first-invalid'
 import { useHydrated } from '@/lib/use-hydrated'
 import type { Locale } from '@/i18n/config'
 import type { Dictionary } from '@/i18n/dictionaries/es'
@@ -24,19 +25,8 @@ export function LoginForm({ labels, locale }: LoginFormProps) {
   const signingIn = useAppSelector(selectSigningIn)
   const signInError = useAppSelector(selectSignInError)
   const [fieldErrors, setFieldErrors] = useState<LoginFieldErrors>({})
-  // Bumped on every submit with errors, so the focus moves even if the errors are the same
-  const [attempt, setAttempt] = useState(0)
-  const formRef = useRef<HTMLFormElement>(null)
+  const { formRef, focusFirstInvalid } = useFocusFirstInvalid()
   const hydrated = useHydrated()
-
-  // After a submit with errors, the focus goes to the first field to fix (WCAG 3.3.1)
-  useEffect(() => {
-    if (attempt === 0) return
-    const form = formRef.current as HTMLFormElement
-    // There is always one: attempt only grows when a field has an error
-    const firstInvalid = form.querySelector('[aria-invalid="true"]') as HTMLElement
-    firstInvalid.focus()
-  }, [attempt])
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -49,7 +39,7 @@ export function LoginForm({ labels, locale }: LoginFormProps) {
     })
     setFieldErrors(errors ?? {})
     if (!values) {
-      setAttempt((current) => current + 1)
+      focusFirstInvalid()
       return
     }
 

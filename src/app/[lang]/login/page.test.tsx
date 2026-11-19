@@ -19,6 +19,10 @@ describe('LoginPage', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Sign in' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Create a patient account' })).toHaveAttribute(
+      'href',
+      '/en/register',
+    )
   })
 
   it('names the page', async () => {

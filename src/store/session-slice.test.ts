@@ -7,17 +7,24 @@ import {
   selectSessionUser,
   selectSignInError,
   selectSigningIn,
+  selectSigningOut,
+  selectSigningUp,
+  selectSignUpError,
   signIn,
   signInErrorFor,
-  selectSigningOut,
   signOut,
+  signUp,
+  signUpErrorFor,
 } from './session-slice'
 import { makeStore } from './store'
 
 const credentials = { email: testUsers.patient.email, password: '12345678' }
 
+const loginHandler = (answer: (request: Request) => Response | Promise<Response>) =>
+  http.post('*/api/auth/login', ({ request }) => answer(request))
+
 const login = (answer: (request: Request) => Response | Promise<Response>) =>
-  server.use(http.post('*/api/auth/login', ({ request }) => answer(request)))
+  server.use(loginHandler(answer))
 
 describe('signInErrorFor', () => {
   it('explains each answer of the API', () => {
@@ -83,7 +90,14 @@ describe('signIn', () => {
 describe('signOut', () => {
   const signedIn = () =>
     makeStore({
-      session: { user: testUsers.patient, signingIn: false, signInError: null, signingOut: false },
+      session: {
+        user: testUsers.patient,
+        signingIn: false,
+        signInError: null,
+        signingOut: false,
+        signingUp: false,
+        signUpError: null,
+      },
     })
 
   it('asks the API to clear the session and forgets the user', async () => {
@@ -113,5 +127,95 @@ describe('signOut', () => {
 
     expect(selectSigningOut(store.getState())).toBe(false)
     expect(selectSessionUser(store.getState())).toEqual(testUsers.patient)
+  })
+})
+
+describe('signUpErrorFor', () => {
+  it('explains each answer of the API', () => {
+    expect(signUpErrorFor(new ApiError(409, 'Email is already registered'))).toBe('emailTaken')
+    expect(signUpErrorFor(new ApiError(400, 'Invalid request data'))).toBe('invalidData')
+    expect(signUpErrorFor(new ApiError(429, 'Too many accounts created'))).toBe('tooManyAttempts')
+    expect(signUpErrorFor(new ApiError(0, 'The API could not be reached'))).toBe('network')
+    expect(signUpErrorFor(new ApiError(500, 'Internal server error'))).toBe('unknown')
+    expect(signUpErrorFor(new Error('boom'))).toBe('unknown')
+  })
+})
+
+describe('signUp', () => {
+  const values = {
+    firstName: 'Ana',
+    lastName: 'García López',
+    birthDate: '1990-05-21',
+    phone: '5512345678',
+    email: 'ana.garcia@test.com',
+    password: '12345678',
+    emailRemindersOptIn: true,
+    whatsappOptIn: false,
+  }
+  const newPatient = {
+    id: 'a1b2c3d4-0000-4000-8000-000000000001',
+    email: values.email,
+    role: 'patient',
+  }
+
+  it('creates the account with the data of the form and signs in with it', async () => {
+    let registered: unknown
+    let credentials: unknown
+    server.use(
+      http.post('*/api/auth/register', async ({ request }) => {
+        registered = await request.json()
+        return HttpResponse.json({ patient: { id: 'patient-1' } }, { status: 201 })
+      }),
+      loginHandler(async (request) => {
+        credentials = await request.json()
+        return HttpResponse.json({ user: newPatient })
+      }),
+    )
+    const store = makeStore()
+
+    const signingUp = store.dispatch(signUp(values))
+    expect(selectSigningUp(store.getState())).toBe(true)
+    const result = await signingUp
+
+    expect(result.payload).toBe('signedIn')
+    expect(registered).toEqual(values)
+    expect(credentials).toEqual({ email: values.email, password: values.password })
+    expect(selectSigningUp(store.getState())).toBe(false)
+    expect(selectSessionUser(store.getState())).toEqual(newPatient)
+  })
+
+  it('reports an account that was created when signing in afterwards failed', async () => {
+    server.use(
+      http.post('*/api/auth/register', () => HttpResponse.json({ patient: {} }, { status: 201 })),
+      loginHandler(() => HttpResponse.error()),
+    )
+
+    const result = await makeStore().dispatch(signUp(values))
+
+    expect(result.payload).toBe('created')
+  })
+
+  it('records why the account could not be created, and clears it on the next try', async () => {
+    server.use(
+      http.post('*/api/auth/register', () =>
+        HttpResponse.json({ error: 'Email is already registered' }, { status: 409 }),
+      ),
+    )
+    const store = makeStore()
+
+    await store.dispatch(signUp(values))
+    expect(selectSignUpError(store.getState())).toBe('emailTaken')
+
+    const retry = store.dispatch(signUp(values))
+    expect(selectSignUpError(store.getState())).toBeNull()
+    await retry
+  })
+
+  it('counts a sign-up that ended without an answer as unknown', () => {
+    const store = makeStore()
+
+    store.dispatch(signUp.rejected(new Error('Aborted'), 'request-id', values))
+
+    expect(selectSignUpError(store.getState())).toBe('unknown')
   })
 })
