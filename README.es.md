@@ -16,7 +16,7 @@ Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agen
 - [x] Tema claro, oscuro o el del sistema, sin parpadeo al cargar
 - [ ] Librería de componentes con variantes tipadas, documentada en Storybook
 - [x] Español e inglés (`/es`, `/en`), con el idioma elegido según el navegador o la última visita
-- [ ] Inicio y cierre de sesión (listos), registro de pacientes; rutas protegidas por rol desde el servidor
+- [ ] Inicio y cierre de sesión y rutas protegidas por rol desde el servidor (listos), registro de pacientes
 - [ ] Páginas públicas: inicio, servicios y médicos
 - [ ] Pacientes: reservar, cancelar, reprogramar y confirmar citas; ver quién abrió su expediente
 - [ ] Recepción: búsqueda de pacientes, pacientes sin cuenta, reservas para un paciente, agenda del día
@@ -165,8 +165,11 @@ src/
 ├── api/
 │   └── client.ts          # fetch para /api: JSON de ida y vuelta, errores como ApiError
 ├── auth/
+│   ├── constants.ts       # el nombre de la cookie de sesión
+│   ├── guard.ts           # requireSession(): sin sesión → iniciar sesión, otro rol → 403
 │   ├── login-schema.ts    # las reglas de inicio de sesión de la API, revisadas antes de enviar
 │   ├── redirect.ts        # a dónde ir después de iniciar sesión, nunca fuera del sitio
+│   ├── protected-paths.ts # las páginas que necesitan sesión, para el Proxy
 │   ├── session.ts         # getSession(): quién inició sesión, preguntado a la API en el servidor
 │   ├── token.ts           # cuándo vence el token de la sesión
 │   └── types.ts           # roles, SessionUser y Session
@@ -175,11 +178,14 @@ src/
 │   ├── globals.test.ts    # revisa el contraste WCAG de cada par de colores, en los dos temas
 │   └── [lang]/            # todas las páginas, bajo /es o /en
 │       ├── [...rest]/     # cualquier dirección que no sea una página: un 404
+│       ├── account/       # mi cuenta (protegida)
+│       ├── forbidden.tsx  # página 403, para un rol que no puede ver una página
 │       ├── layout.tsx     # layout raíz: <html lang>, encabezado, región principal, pie, avisos
 │       ├── login/         # página de inicio de sesión
 │       ├── not-found.tsx  # página 404, dentro del layout y en el idioma de la URL
 │       └── page.tsx       # página de inicio
 ├── components/
+│   ├── account-details.tsx # correo y rol de quien inició sesión, detrás de requireSession
 │   ├── account-area.tsx   # la cuenta en el encabezado: quién inició sesión, detrás de <Suspense>
 │   ├── account-menu.tsx   # correo, rol y el botón para cerrar sesión
 │   ├── inline-script.tsx  # script que corre antes del primer pintado, sin el aviso de React
@@ -228,7 +234,7 @@ src/
 └── theme/
     ├── theme.ts           # leer, guardar y aplicar el tema, y el script que corre antes de pintar
     └── use-theme.ts       # hook de React, sincronizado entre pestañas
-src/proxy.ts               # redirige las URL sin idioma a /es o /en
+src/proxy.ts               # agrega el idioma a la URL; las páginas protegidas sin sesión van a iniciar sesión
 next.config.ts             # configuración de Next.js (Cache Components, rewrites)
 lighthouserc.json          # páginas y puntuaciones mínimas de Lighthouse CI
 playwright.config.ts       # navegadores y servidor de las pruebas end-to-end

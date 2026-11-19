@@ -16,7 +16,7 @@ Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appo
 - [x] Light, dark or system theme, with no flash on load
 - [x] Component library with typed variants, documented in Storybook
 - [x] Spanish and English (`/es`, `/en`), with the language chosen from the browser or the last visit
-- [ ] Sign in and sign-out (done), patient sign-up; routes protected by role on the server
+- [ ] Sign in, sign-out and routes protected by role on the server (done), patient sign-up
 - [ ] Public pages: home, services and doctors
 - [ ] Patients: book, cancel, reschedule and confirm appointments; see who opened their record
 - [ ] Front desk: patient search, walk-in patients, booking for a patient, daily agenda
@@ -165,8 +165,11 @@ src/
 ├── api/
 │   └── client.ts          # fetch for /api: JSON in and out, errors as ApiError
 ├── auth/
+│   ├── constants.ts       # the name of the session cookie
+│   ├── guard.ts           # requireSession(): signed out → sign in, other role → 403
 │   ├── login-schema.ts    # the sign-in rules of the API, checked before sending
 │   ├── redirect.ts        # where to go after signing in, never outside the site
+│   ├── protected-paths.ts # the pages that need a session, for the Proxy
 │   ├── session.ts         # getSession(): who is signed in, asked to the API on the server
 │   ├── token.ts           # when the session token expires
 │   └── types.ts           # roles, SessionUser and Session
@@ -175,11 +178,14 @@ src/
 │   ├── globals.test.ts    # checks the WCAG contrast of every color pair, in both themes
 │   └── [lang]/            # every page, under /es or /en
 │       ├── [...rest]/     # any address that matches no page: a 404
+│       ├── account/       # my account (protected)
+│       ├── forbidden.tsx  # 403 page, for a role that may not see a page
 │       ├── layout.tsx     # root layout: <html lang>, header, main region, footer, toasts
 │       ├── login/         # sign-in page
 │       ├── not-found.tsx  # 404 page, inside the layout and in the language of the URL
 │       └── page.tsx       # home page
 ├── components/
+│   ├── account-details.tsx # email and role of who is signed in, behind requireSession
 │   ├── account-area.tsx   # the header's account: who is signed in, streamed behind <Suspense>
 │   ├── account-menu.tsx   # email, role and the sign-out button
 │   ├── inline-script.tsx  # script that runs before the first paint, without React's warning
@@ -228,7 +234,7 @@ src/
 └── theme/
     ├── theme.ts           # read, save and apply the theme, and the script that runs before paint
     └── use-theme.ts       # React hook, kept in sync across tabs
-src/proxy.ts               # redirects URLs without a language to /es or /en
+src/proxy.ts               # adds the language to the URL; protected pages without a session go to sign in
 next.config.ts             # Next.js configuration (Cache Components, rewrites)
 lighthouserc.json          # pages and minimum scores for Lighthouse CI
 playwright.config.ts       # browsers and the server for the end-to-end tests

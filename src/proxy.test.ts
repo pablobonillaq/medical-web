@@ -45,6 +45,21 @@ describe('proxy', () => {
     expect(response.headers.get('set-cookie')).toBeNull()
   })
 
+  it('sends a protected page without the session cookie to sign in, coming back to it', () => {
+    const response = proxy(request('/en/account?tab=profile'))
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe(
+      'http://localhost:3001/en/login?next=%2Fen%2Faccount%3Ftab%3Dprofile',
+    )
+  })
+
+  it('lets a protected page through with the session cookie, for the page to check it', () => {
+    const response = proxy(request('/es/account', { cookie: 'locale=es; access_token=token' }))
+
+    expect(response.headers.get('location')).toBeNull()
+  })
+
   it('treats a path that only starts like a language as a page without one', () => {
     const response = proxy(request('/español'))
 

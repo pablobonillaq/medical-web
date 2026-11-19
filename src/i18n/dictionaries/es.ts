@@ -38,6 +38,7 @@ export const es = {
     signOut: 'Cerrar sesión',
     signingOut: 'cerrando sesión',
     signedInAs: 'Sesión iniciada como',
+    myAccount: 'Mi cuenta',
     signOutFailed: 'No pudimos cerrar tu sesión. Revisa tu conexión e inténtalo de nuevo.',
     roles: {
       admin: 'Administración',
@@ -45,6 +46,18 @@ export const es = {
       employee: 'Recepción',
       patient: 'Paciente',
     },
+  },
+  accountPage: {
+    title: 'Mi cuenta',
+    loading: 'Cargando tu cuenta…',
+    email: 'Correo electrónico',
+    role: 'Rol',
+  },
+  forbidden: {
+    title: 'No tienes acceso a esta página',
+    description:
+      'Tu cuenta no tiene permiso para ver esta página. Si crees que es un error, comunícate con la recepción de la clínica.',
+    home: 'Volver al inicio',
   },
   login: {
     title: 'Iniciar sesión',

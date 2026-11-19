@@ -1,8 +1,9 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { SessionUser } from '@/auth/types'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { useToast } from '@/components/ui/toast'
 import { VisuallyHidden } from '@/components/ui/visually-hidden'
 import type { Locale } from '@/i18n/config'
@@ -16,7 +17,7 @@ type AccountMenuProps = {
   labels: Dictionary['account']
 }
 
-// Who is signed in, with which role, and the button to sign out
+// Who is signed in, with which role, a link to their account and the button to sign out
 export function AccountMenu({ user, locale, labels }: AccountMenuProps) {
   const dispatch = useAppDispatch()
   const router = useRouter()
@@ -41,6 +42,12 @@ export function AccountMenu({ user, locale, labels }: AccountMenuProps) {
         <span className="font-medium">{user.email}</span>
         <span className="text-muted-foreground"> · {labels.roles[user.role]}</span>
       </p>
+      <Link
+        href={`/${locale}/account`}
+        className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+      >
+        {labels.myAccount}
+      </Link>
       <Button
         variant="secondary"
         size="sm"

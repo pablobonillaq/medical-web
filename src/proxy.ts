@@ -1,4 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { SESSION_COOKIE } from '@/auth/constants'
+import { isProtectedPath } from '@/auth/protected-paths'
 import { LOCALE_COOKIE, LOCALES } from '@/i18n/config'
 import { pickLocale } from '@/i18n/negotiate'
 
@@ -14,6 +16,18 @@ export function proxy(request: NextRequest) {
   )
 
   if (current) {
+    // A quick check before rendering: without the session cookie, a protected page goes
+    // straight to the sign-in page with a real 307. The page checks the session again on the
+    // server (requireSession), so a fake cookie gets nowhere
+    if (
+      isProtectedPath(pathname.slice(current.length + 1)) &&
+      !request.cookies.has(SESSION_COOKIE)
+    ) {
+      const login = request.nextUrl.clone()
+      login.pathname = `/${current}/login`
+      login.search = `?next=${encodeURIComponent(pathname + request.nextUrl.search)}`
+      return NextResponse.redirect(login)
+    }
     const response = NextResponse.next()
     if (saved !== current) {
       response.cookies.set(LOCALE_COOKIE, current, {

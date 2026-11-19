@@ -40,6 +40,12 @@ describe('AccountMenu', () => {
     )
   })
 
+  it('links to the account page in the language of the page', () => {
+    renderMenu()
+
+    expect(screen.getByRole('link', { name: 'Mi cuenta' })).toHaveAttribute('href', '/es/account')
+  })
+
   it('signs out and goes to the home page', async () => {
     const user = userEvent.setup()
     server.use(http.post('*/api/auth/logout', () => new HttpResponse(null, { status: 204 })))

@@ -1,16 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
-import { expectNoAccessibilityViolations } from './helpers'
-
-// The fictitious account the fake API accepts (scripts/fake-api.mjs)
-const PATIENT = { email: 'paciente@test.com', password: '12345678' }
-
-const signIn = async (page: Page, email: string, password: string) => {
-  // Disabled until React hydrates (see LoginForm)
-  await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeEnabled()
-  await page.getByLabel('Correo electrónico').fill(email)
-  await page.getByLabel('Contraseña').fill(password)
-  await page.getByRole('button', { name: 'Iniciar sesión' }).click()
-}
+import { expect, test } from '@playwright/test'
+import { expectNoAccessibilityViolations, PATIENT, signIn } from './helpers'
 
 test('explains the errors next to the fields, with no violations', async ({ page }) => {
   await page.goto('/es/login')
@@ -41,7 +30,7 @@ test('signs in and goes back to the page in ?next=', async ({ page, context }) =
   await page.goto('/es/login?next=%2Fen')
   const login = page.waitForResponse('**/api/auth/login')
 
-  await signIn(page, PATIENT.email, PATIENT.password)
+  await signIn(page)
 
   await expect(page).toHaveURL('/en')
   // What the API tells the browser to do with its session cookie. Checked on the response:
@@ -59,14 +48,14 @@ test('signs in and goes back to the page in ?next=', async ({ page, context }) =
 test('never sends the visitor to another site after signing in', async ({ page }) => {
   await page.goto('/es/login?next=https%3A%2F%2Fevil.example')
 
-  await signIn(page, PATIENT.email, PATIENT.password)
+  await signIn(page)
 
   await expect(page).toHaveURL('/es')
 })
 
 test('shows who signed in and signs out', async ({ page, context }) => {
   await page.goto('/es/login')
-  await signIn(page, PATIENT.email, PATIENT.password)
+  await signIn(page)
 
   const banner = page.getByRole('banner')
   await expect(banner).toContainText('paciente@test.com · Paciente')

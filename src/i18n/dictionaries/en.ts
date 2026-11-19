@@ -39,6 +39,7 @@ export const en: Dictionary = {
     signOut: 'Sign out',
     signingOut: 'signing out',
     signedInAs: 'Signed in as',
+    myAccount: 'My account',
     signOutFailed: "We couldn't sign you out. Check your connection and try again.",
     roles: {
       admin: 'Admin',
@@ -46,6 +47,18 @@ export const en: Dictionary = {
       employee: 'Front desk',
       patient: 'Patient',
     },
+  },
+  accountPage: {
+    title: 'My account',
+    loading: 'Loading your account…',
+    email: 'Email',
+    role: 'Role',
+  },
+  forbidden: {
+    title: "You don't have access to this page",
+    description:
+      "Your account isn't allowed to see this page. If you think this is a mistake, contact the front desk of the clinic.",
+    home: 'Back to home',
   },
   login: {
     title: 'Sign in',

@@ -1,12 +1,9 @@
 import { cookies, headers } from 'next/headers'
 import { cache } from 'react'
 import { env } from '@/config/env'
+import { SESSION_COOKIE } from './constants'
 import { readTokenExpiry } from './token'
 import type { Role, Session } from './types'
-
-// The httpOnly cookie the API sets at sign-in. The browser sends it to /api/* (same origin),
-// and the Next.js server reads it here
-export const SESSION_COOKIE = 'access_token'
 
 type MeResponse = {
   user: { id: string; email: string; role: Role }

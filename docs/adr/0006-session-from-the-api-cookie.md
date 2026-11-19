@@ -13,6 +13,7 @@ The Express API already handles sign-in: `POST /auth/login` sets an httpOnly coo
 - **A Data Access Layer** (`src/auth/session.ts`): `getSession()` is the only code that reads the session on the server. It reads the cookie and asks the API (`GET /auth/me`) who it belongs to, so a forged, expired or revoked token counts as signed out. React `cache()` makes it one request to the API per page render.
 - **Only what pages need:** the session holds the user's id, email and role, and when it expires. The expiry is read from the token's payload without checking the signature, only to warn the user in time; the API checks the signature on every request.
 - **Request-time reads behind `<Suspense>`:** components that read the session stream in, and the rest of the page stays in the static shell.
+- **Protected pages, checked twice:** the Proxy only looks for the cookie and sends a visitor without one to sign in with a real 307, before anything renders. The page then calls `requireSession()`, which asks the API: signed out goes to sign in, and a role that may not see the page gets a 403 (`forbidden()`, with `experimental.authInterrupts`). The Proxy check is an optimization; the server check is the security.
 - **The visitor's address is forwarded** (`X-Forwarded-For`) so the API's rate limits count the visitor, not the web server.
 
 ## Consequences

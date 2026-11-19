@@ -24,3 +24,15 @@ export const expectNoAccessibilityViolations = async (page: Page) => {
   )
   expect(problems).toEqual([])
 }
+
+// The fictitious account the fake API accepts (scripts/fake-api.mjs)
+export const PATIENT = { email: 'paciente@test.com', password: '12345678' }
+
+// Fills in and sends the sign-in form of the page that is open
+export const signIn = async (page: Page, email = PATIENT.email, password = PATIENT.password) => {
+  // Disabled until React hydrates (see LoginForm)
+  await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeEnabled()
+  await page.getByLabel('Correo electrónico').fill(email)
+  await page.getByLabel('Contraseña').fill(password)
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click()
+}
