@@ -48,6 +48,15 @@ export const en: Dictionary = {
       patient: 'Patient',
     },
   },
+  sessionExpiry: {
+    title: 'Your session is about to end',
+    description:
+      'For your security, your session ends at {time}. Save what you are writing and sign in again to continue.',
+    signInAgain: 'Sign in again',
+    stay: 'Stay here',
+    close: 'Close notice',
+    expired: 'Your session ended. Sign in again to continue.',
+  },
   accountPage: {
     title: 'My account',
     loading: 'Loading your account…',

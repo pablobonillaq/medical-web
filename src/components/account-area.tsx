@@ -2,6 +2,7 @@ import { getSession } from '@/auth/session'
 import type { Locale } from '@/i18n/config'
 import type { Dictionary } from '@/i18n/dictionaries/es'
 import { AccountMenu } from './account-menu'
+import { SessionWatcher } from './session-watcher'
 import { SignInLink } from './sign-in-link'
 import { Skeleton } from './ui/skeleton'
 
@@ -16,7 +17,11 @@ export async function AccountArea({ locale, labels }: AccountAreaProps) {
   const session = await getSession()
 
   return session ? (
-    <AccountMenu user={session.user} locale={locale} labels={labels} />
+    <>
+      <AccountMenu user={session.user} locale={locale} labels={labels} />
+      {/* Starts the countdown to the end of the session (see sessionExpirySaga) */}
+      <SessionWatcher expiresAt={session.expiresAt} />
+    </>
   ) : (
     <SignInLink locale={locale} label={labels.signIn} />
   )

@@ -47,6 +47,15 @@ export const es = {
       patient: 'Paciente',
     },
   },
+  sessionExpiry: {
+    title: 'Tu sesión está por terminar',
+    description:
+      'Por seguridad, tu sesión se cierra a las {time}. Guarda lo que estés escribiendo y vuelve a iniciar sesión para seguir.',
+    signInAgain: 'Iniciar sesión de nuevo',
+    stay: 'Seguir aquí',
+    close: 'Cerrar aviso',
+    expired: 'Tu sesión terminó. Inicia sesión de nuevo para continuar.',
+  },
   accountPage: {
     title: 'Mi cuenta',
     loading: 'Cargando tu cuenta…',

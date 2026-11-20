@@ -23,6 +23,8 @@ vi.mock('next/headers', () => ({
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   usePathname: () => '/es',
+  // The dialog that warns before the session ends needs a router, even closed
+  useRouter: () => ({ replace: () => {}, refresh: () => {} }),
 }))
 
 // The root layout is an async Server Component that renders <html>: it is awaited, rendered to a

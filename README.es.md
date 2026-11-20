@@ -8,7 +8,7 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 (configuración base) y 2 (sistema de diseño) completadas; Fase 3 (idiomas y estructura) completada; Fase 4 (capa de datos) completada; Fase 5 (autenticación) en curso.
+> **Estado:** en desarrollo. Fases 1 a 5 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación); sigue la Fase 6 (páginas públicas).
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
@@ -16,7 +16,7 @@ Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agen
 - [x] Tema claro, oscuro o el del sistema, sin parpadeo al cargar
 - [ ] Librería de componentes con variantes tipadas, documentada en Storybook
 - [x] Español e inglés (`/es`, `/en`), con el idioma elegido según el navegador o la última visita
-- [ ] Inicio de sesión, registro de pacientes, cierre de sesión y rutas protegidas por rol desde el servidor (listos); aviso antes de que venza la sesión
+- [x] Inicio de sesión, registro de pacientes y cierre de sesión; rutas protegidas por rol desde el servidor; aviso antes de que venza la sesión
 - [ ] Páginas públicas: inicio, servicios y médicos
 - [ ] Pacientes: reservar, cancelar, reprogramar y confirmar citas; ver quién abrió su expediente
 - [ ] Recepción: búsqueda de pacientes, pacientes sin cuenta, reservas para un paciente, agenda del día
@@ -196,6 +196,8 @@ src/
 │   ├── register-form.tsx  # formulario de registro de pacientes, inicia sesión al crear la cuenta
 │   ├── api-status.tsx     # si el servicio está disponible, en el pie
 │   ├── site-footer.tsx    # pie de cada página
+│   ├── session-expiry-dialog.tsx # avisa antes de que venza la sesión, y cuando venció
+│   ├── session-watcher.tsx # le pasa al store cuándo vence la sesión
 │   ├── sign-in-link.tsx   # enlace para iniciar sesión que regresa a la página actual
 │   ├── site-header.tsx    # encabezado de cada página: enlace al inicio, cuenta, tema e idioma
 │   ├── theme-switcher.tsx # claro, oscuro o sistema, con botones de radio nativos
@@ -232,7 +234,9 @@ src/
 │   ├── api-health-saga.ts # revisa la API cada minuto, espera más tras fallas, se pausa en pestañas ocultas
 │   ├── api-status-slice.ts # si la API responde, con el thunk checkApiHealth
 │   ├── hooks.ts           # useAppDispatch, useAppSelector y useAppStore tipados
-│   ├── session-slice.ts   # quién inició sesión, con los thunks signIn y signOut
+│   ├── session-expiry-saga.ts # cuenta regresiva al vencimiento: primero el aviso, luego el fin
+│   ├── session-expiry-slice.ts # cuándo vence la sesión y si el aviso está abierto
+│   ├── session-slice.ts   # quién inició sesión, con los thunks signIn, signUp y signOut
 │   ├── store-provider.tsx # crea el store una vez por carga de página e inicia las sagas
 │   └── store.ts           # makeStore (thunks y sagas) y los tipos RootState y AppDispatch
 └── theme/
@@ -264,7 +268,7 @@ Están escritas en inglés, como el código.
 2. ~~Sistema de diseño: tokens, temas claro y oscuro, librería de componentes, Storybook~~ ✅
 3. ~~Idiomas y estructura: español e inglés, layout, Playwright con axe, Lighthouse CI~~ ✅
 4. ~~Capa de datos: store de Redux Toolkit, cliente de la API, thunks, sagas y MSW~~ ✅
-5. Autenticación: inicio de sesión, registro, cierre de sesión, rutas protegidas, navegación por rol, vencimiento de sesión — en curso
+5. ~~Autenticación: inicio de sesión, registro, cierre de sesión, rutas protegidas por rol, vencimiento de sesión~~ ✅ (la navegación por rol crece con cada área)
 6. Páginas públicas: inicio, servicios y médicos
 7. Área del paciente: perfil, reservas, mis citas, registro de accesos
 8. Recepción: búsqueda de pacientes, pacientes sin cuenta, reservas para un paciente, agenda del día

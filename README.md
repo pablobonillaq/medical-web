@@ -8,7 +8,7 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phases 1 (base setup) and 2 (design system) completed; Phase 3 (languages and app shell) completed; Phase 4 (data layer) completed; Phase 5 (authentication) in progress.
+> **Status:** in development. Phases 1 to 5 completed (base setup, design system, languages and app shell, data layer, authentication); Phase 6 (public pages) next.
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
@@ -16,7 +16,7 @@ Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appo
 - [x] Light, dark or system theme, with no flash on load
 - [x] Component library with typed variants, documented in Storybook
 - [x] Spanish and English (`/es`, `/en`), with the language chosen from the browser or the last visit
-- [ ] Sign in, patient sign-up, sign-out and routes protected by role on the server (done); warning before the session ends
+- [x] Sign in, patient sign-up and sign-out; routes protected by role on the server; a warning before the session ends
 - [ ] Public pages: home, services and doctors
 - [ ] Patients: book, cancel, reschedule and confirm appointments; see who opened their record
 - [ ] Front desk: patient search, walk-in patients, booking for a patient, daily agenda
@@ -196,6 +196,8 @@ src/
 │   ├── register-form.tsx  # patient sign-up form, signs in right after creating the account
 │   ├── api-status.tsx     # whether the service is available, in the footer
 │   ├── site-footer.tsx    # footer of every page
+│   ├── session-expiry-dialog.tsx # warns before the session ends, and says when it ended
+│   ├── session-watcher.tsx # hands the end of the session to the store
 │   ├── sign-in-link.tsx   # link to sign in that comes back to the current page
 │   ├── site-header.tsx    # banner of every page: link home, account, theme and language
 │   ├── theme-switcher.tsx # light, dark or system, as native radio buttons
@@ -232,7 +234,9 @@ src/
 │   ├── api-health-saga.ts # checks the API every minute, backs off on failures, pauses in hidden tabs
 │   ├── api-status-slice.ts # whether the API answers, with the checkApiHealth thunk
 │   ├── hooks.ts           # typed useAppDispatch, useAppSelector and useAppStore
-│   ├── session-slice.ts   # who signed in, with the signIn and signOut thunks
+│   ├── session-expiry-saga.ts # counts down to the end of the session: warning, then end
+│   ├── session-expiry-slice.ts # when the session ends and whether the warning is open
+│   ├── session-slice.ts   # who signed in, with the signIn, signUp and signOut thunks
 │   ├── store-provider.tsx # creates the store once per page load and starts the sagas
 │   └── store.ts           # makeStore (thunks and sagas) and the RootState and AppDispatch types
 └── theme/
@@ -262,7 +266,7 @@ vitest.config.mts          # unit tests and the 100% coverage threshold
 2. ~~Design system: tokens, light and dark themes, component library, Storybook~~ ✅
 3. ~~Languages and app shell: Spanish and English, layout, Playwright with axe, Lighthouse CI~~ ✅
 4. ~~Data layer: Redux Toolkit store, API client, thunks, sagas and MSW~~ ✅
-5. Authentication: sign in, sign-up, sign-out, protected routes, navigation by role, session expiry — in progress
+5. ~~Authentication: sign in, sign-up, sign-out, protected routes by role, session expiry~~ ✅ (the navigation by role grows with each area)
 6. Public pages: home, services and doctors
 7. Patient area: profile, booking, my appointments, access log
 8. Front desk: patient search, walk-in patients, booking for a patient, daily agenda

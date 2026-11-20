@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Suspense } from 'react'
 import { InlineScript } from '@/components/inline-script'
 import { AccountArea, AccountAreaFallback } from '@/components/account-area'
+import { SessionExpiryDialog } from '@/components/session-expiry-dialog'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import { SkipLink } from '@/components/ui/skip-link'
@@ -73,6 +74,7 @@ export default async function RootLayout({ children }: LayoutProps<'/[lang]'>) {
               {children}
             </main>
             <SiteFooter dictionary={dictionary} />
+            <SessionExpiryDialog labels={dictionary.sessionExpiry} locale={locale} />
           </ToastProvider>
         </StoreProvider>
       </body>

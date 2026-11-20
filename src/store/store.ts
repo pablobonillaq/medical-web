@@ -3,15 +3,17 @@ import createSagaMiddleware, { type SagaIterator } from 'redux-saga'
 import { all, call } from 'redux-saga/effects'
 import { apiHealthSaga } from './api-health-saga'
 import { apiStatusSlice } from './api-status-slice'
+import { sessionExpirySaga } from './session-expiry-saga'
+import { sessionExpirySlice } from './session-expiry-slice'
 import { sessionSlice } from './session-slice'
 
 // Each slice keeps its state under its own name: state.apiStatus, state.session
-const rootReducer = combineSlices(apiStatusSlice, sessionSlice)
+const rootReducer = combineSlices(apiStatusSlice, sessionSlice, sessionExpirySlice)
 
 export type RootState = ReturnType<typeof rootReducer>
 
 function* rootSaga(): SagaIterator {
-  yield all([call(apiHealthSaga)])
+  yield all([call(apiHealthSaga), call(sessionExpirySaga)])
 }
 
 // A new store for each visitor: StoreProvider creates one per page load, so on the server a
