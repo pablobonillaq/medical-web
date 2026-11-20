@@ -8,7 +8,7 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 a 5 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación); sigue la Fase 6 (páginas públicas).
+> **Estado:** en desarrollo. Fases 1 a 5 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación); Fase 6 (páginas públicas) en curso: página de servicios lista.
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
@@ -106,7 +106,7 @@ Playwright también inicia un sustituto de la API de Express en el puerto 3000 (
 
 ### Lighthouse
 
-**Lighthouse CI** mide `/es` y `/en` sobre el build de producción, tres veces cada una, y falla si una puntuación baja del mínimo (`lighthouserc.json`): accesibilidad **100**, buenas prácticas 95, SEO 90 y rendimiento 90 (la ejecución mediana, con un perfil de celular con red y CPU limitadas). La página 404 queda fuera a propósito: Lighthouse baja el SEO de cualquier página que responde 404.
+**Lighthouse CI** mide `/es`, `/en` y `/es/services` sobre el build de producción, tres veces cada una, y falla si una puntuación baja del mínimo (`lighthouserc.json`): accesibilidad **100**, buenas prácticas 95, SEO 90 y rendimiento 90 (la ejecución mediana, con un perfil de celular con red y CPU limitadas). La página 404 queda fuera a propósito: Lighthouse baja el SEO de cualquier página que responde 404.
 
 ```bash
 npm run build
@@ -160,7 +160,7 @@ docs/
 e2e/                       # pruebas end-to-end y de axe con Playwright
 mocks/                     # API simulada para las pruebas (MSW)
 scripts/
-└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, registro, inicio y cierre de sesión)
+└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, autenticación, servicios)
 src/
 ├── api/
 │   └── client.ts          # fetch para /api: JSON de ida y vuelta, errores como ApiError
@@ -174,6 +174,8 @@ src/
 │   ├── session.ts         # getSession(): quién inició sesión, preguntado a la API en el servidor
 │   ├── token.ts           # cuándo vence el token de la sesión
 │   └── types.ts           # roles, SessionUser y Session
+├── catalog/
+│   └── catalog.ts         # los servicios de la clínica, leídos de la API y en caché para todos
 ├── app/                   # rutas (App Router)
 │   ├── globals.css        # Tailwind y tokens de diseño (colores con light-dark())
 │   ├── globals.test.ts    # revisa el contraste WCAG de cada par de colores, en los dos temas
@@ -184,6 +186,7 @@ src/
 │       ├── layout.tsx     # layout raíz: <html lang>, encabezado, región principal, pie, avisos
 │       ├── login/         # página de inicio de sesión
 │       ├── register/      # página de registro de pacientes
+│       ├── services/      # los servicios de la clínica (pública)
 │       ├── not-found.tsx  # página 404, dentro del layout y en el idioma de la URL
 │       └── page.tsx       # página de inicio
 ├── components/
@@ -192,12 +195,14 @@ src/
 │   ├── account-menu.tsx   # correo, rol y el botón para cerrar sesión
 │   ├── inline-script.tsx  # script que corre antes del primer pintado, sin el aviso de React
 │   ├── language-switcher.tsx # enlaces a la misma página en cada idioma
+│   ├── main-nav.tsx       # las secciones públicas del sitio, marcando la actual
 │   ├── login-form.tsx     # formulario de inicio de sesión: errores junto a cada campo, fallas anunciadas
 │   ├── register-form.tsx  # formulario de registro de pacientes, inicia sesión al crear la cuenta
 │   ├── api-status.tsx     # si el servicio está disponible, en el pie
 │   ├── site-footer.tsx    # pie de cada página
 │   ├── session-expiry-dialog.tsx # avisa antes de que venza la sesión, y cuando venció
 │   ├── session-watcher.tsx # le pasa al store cuándo vence la sesión
+│   ├── service-list.tsx   # los servicios en tarjetas, o un aviso si la API no responde
 │   ├── sign-in-link.tsx   # enlace para iniciar sesión que regresa a la página actual
 │   ├── site-header.tsx    # encabezado de cada página: enlace al inicio, cuenta, tema e idioma
 │   ├── theme-switcher.tsx # claro, oscuro o sistema, con botones de radio nativos
@@ -253,14 +258,15 @@ vitest.config.mts          # pruebas unitarias y el umbral de 100 % de cobertura
 
 Están escritas en inglés, como el código.
 
-| ADR                                                  | Decisión                                                                                  |
-| ---------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [0001](docs/adr/0001-nextjs-app-router.md)           | Next.js App Router con Cache Components, en el mismo origen que la API                    |
-| [0002](docs/adr/0002-tailwind-component-library.md)  | Librería de componentes con Tailwind y variantes tipadas, sin styled-components           |
-| [0003](docs/adr/0003-redux-thunks-and-sagas.md)      | Redux Toolkit: thunks para peticiones, sagas para flujos largos                           |
-| [0004](docs/adr/0004-testing-strategy.md)            | Estrategia de pruebas y 100 % de cobertura                                                |
-| [0005](docs/adr/0005-i18n-without-a-library.md)      | Español e inglés con las rutas de Next.js y diccionarios tipados, sin librería            |
-| [0006](docs/adr/0006-session-from-the-api-cookie.md) | Sesión: la cookie httpOnly de la API, leída en el servidor con una capa de acceso a datos |
+| ADR                                                          | Decisión                                                                                  |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| [0001](docs/adr/0001-nextjs-app-router.md)                   | Next.js App Router con Cache Components, en el mismo origen que la API                    |
+| [0002](docs/adr/0002-tailwind-component-library.md)          | Librería de componentes con Tailwind y variantes tipadas, sin styled-components           |
+| [0003](docs/adr/0003-redux-thunks-and-sagas.md)              | Redux Toolkit: thunks para peticiones, sagas para flujos largos                           |
+| [0004](docs/adr/0004-testing-strategy.md)                    | Estrategia de pruebas y 100 % de cobertura                                                |
+| [0005](docs/adr/0005-i18n-without-a-library.md)              | Español e inglés con las rutas de Next.js y diccionarios tipados, sin librería            |
+| [0006](docs/adr/0006-session-from-the-api-cookie.md)         | Sesión: la cookie httpOnly de la API, leída en el servidor con una capa de acceso a datos |
+| [0007](docs/adr/0007-public-catalog-cached-on-the-server.md) | Catálogo público: leído de la API en el servidor y guardado en caché con `use cache`      |
 
 ## Roadmap
 

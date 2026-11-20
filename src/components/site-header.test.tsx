@@ -17,6 +17,16 @@ describe('SiteHeader', () => {
     expect(within(banner).getByRole('link', { name: 'Clínica' })).toHaveAttribute('href', '/es')
   })
 
+  it('links to the sections of the site', () => {
+    render(<SiteHeader locale="es" dictionary={es} account={account} />)
+
+    const nav = within(screen.getByRole('banner')).getByRole('navigation', { name: 'Principal' })
+    expect(within(nav).getByRole('link', { name: 'Servicios' })).toHaveAttribute(
+      'href',
+      '/es/services',
+    )
+  })
+
   it('holds the account and the theme and language preferences', () => {
     render(<SiteHeader locale="es" dictionary={es} account={account} />)
 

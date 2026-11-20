@@ -17,6 +17,10 @@ export const es = {
   language: {
     label: 'Idioma',
   },
+  nav: {
+    label: 'Principal',
+    services: 'Servicios',
+  },
   footer: {
     note: 'Proyecto de portafolio. Todos los datos son ficticios.',
   },
@@ -158,6 +162,16 @@ export const es = {
   home: {
     title: 'Clínica',
     intro: 'Agenda tus citas, consulta tu expediente y escribe a la recepción desde un solo lugar.',
+  },
+  servicesPage: {
+    title: 'Servicios',
+    description: 'Los servicios de la clínica y cuánto dura cada uno.',
+    intro: 'Estos son los servicios que ofrece la clínica y cuánto dura cada cita.',
+    loading: 'Cargando servicios…',
+    duration: 'Duración',
+    empty: 'Por ahora no hay servicios disponibles.',
+    unavailableTitle: 'No pudimos cargar los servicios',
+    unavailable: 'El servicio no responde en este momento. Intenta de nuevo en unos minutos.',
   },
 }
 

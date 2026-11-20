@@ -18,6 +18,10 @@ export const en: Dictionary = {
   language: {
     label: 'Language',
   },
+  nav: {
+    label: 'Main',
+    services: 'Services',
+  },
   footer: {
     note: 'Portfolio project. All data is fictitious.',
   },
@@ -160,5 +164,15 @@ export const en: Dictionary = {
     title: 'Clinic',
     intro:
       'Book your appointments, check your medical record and message the front desk, all in one place.',
+  },
+  servicesPage: {
+    title: 'Services',
+    description: "The clinic's services and how long each one takes.",
+    intro: 'These are the services the clinic offers and how long each appointment takes.',
+    loading: 'Loading services…',
+    duration: 'Duration',
+    empty: 'There are no services available right now.',
+    unavailableTitle: "We couldn't load the services",
+    unavailable: 'The service is not responding right now. Try again in a few minutes.',
   },
 }

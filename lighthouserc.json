@@ -3,7 +3,11 @@
     "collect": {
       "startServerCommand": "npm start",
       "startServerReadyPattern": "ready",
-      "url": ["http://localhost:3001/es", "http://localhost:3001/en"],
+      "url": [
+        "http://localhost:3001/es",
+        "http://localhost:3001/en",
+        "http://localhost:3001/es/services"
+      ],
       "numberOfRuns": 3
     },
     "assert": {

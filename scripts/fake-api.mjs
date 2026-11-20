@@ -15,6 +15,23 @@ const patient = {
 }
 const PASSWORD = '12345678'
 
+// The clinic's active services, as GET /services lists them (sorted by name)
+const service = (id, name, description, durationMinutes) => ({
+  id: `0190a7b2-1111-7000-8000-00000000000${id}`,
+  name,
+  description,
+  durationMinutes,
+  active: true,
+  createdAt: '2026-11-01T10:00:00.000Z',
+  updatedAt: '2026-11-01T10:00:00.000Z',
+})
+const services = [
+  service(1, 'Consulta general', 'Valoración médica de primera vez o de seguimiento.', 30),
+  service(2, 'Electrocardiograma', 'Registro de la actividad eléctrica del corazón.', 20),
+  service(3, 'Pediatría', 'Consulta para niñas, niños y adolescentes.', 30),
+  service(4, 'Ultrasonido', null, 45),
+]
+
 // The accounts, by email. Patients who sign up in the tests are added here, in memory only
 const accounts = new Map([[patient.email, { user: patient, password: PASSWORD }]])
 
@@ -88,6 +105,9 @@ const routes = {
     status: 204,
     headers: { 'Set-Cookie': `${SESSION_COOKIE}=; Max-Age=0; Path=/; HttpOnly; SameSite=Strict` },
   }),
+
+  // Public: anyone can see the services, as in the real API
+  'GET /services': () => ({ status: 200, body: { services } }),
 
   'GET /auth/me': (request) => {
     const user = sessionUser(request)
