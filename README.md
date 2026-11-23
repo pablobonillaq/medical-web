@@ -8,7 +8,7 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phases 1 to 6 completed (base setup, design system, languages and app shell, data layer, authentication, public pages); Phase 7 (patient area) next.
+> **Status:** in development. Phases 1 to 6 completed (base setup, design system, languages and app shell, data layer, authentication, public pages); Phase 7 (patient area) in progress: profile done.
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
@@ -160,10 +160,11 @@ docs/
 e2e/                       # end-to-end and axe tests with Playwright
 mocks/                     # fake API for the tests (MSW)
 scripts/
-└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, auth, services, doctors)
+└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, auth, services, doctors, patient profile)
 src/
 ├── api/
-│   └── client.ts          # fetch for /api: JSON in and out, errors as ApiError
+│   ├── client.ts          # fetch for /api: JSON in and out, errors as ApiError
+│   └── server.ts          # fetch for Server Components, with the visitor's session (never cached)
 ├── auth/
 │   ├── constants.ts       # the name of the session cookie
 │   ├── guard.ts           # requireSession(): signed out → sign in, other role → 403
@@ -185,6 +186,7 @@ src/
 │       ├── forbidden.tsx  # 403 page, for a role that may not see a page
 │       ├── layout.tsx     # root layout: <html lang>, header, main region, footer, toasts
 │       ├── login/         # sign-in page
+│       ├── profile/       # the patient's profile (patients only)
 │       ├── register/      # patient sign-up page
 │       ├── doctors/       # the clinic's doctors, filtered by service (public)
 │       ├── services/      # the clinic's services (public)
@@ -193,10 +195,12 @@ src/
 ├── components/
 │   ├── account-details.tsx # email and role of who is signed in, behind requireSession
 │   ├── account-area.tsx   # the header's account: who is signed in, streamed behind <Suspense>
-│   ├── account-menu.tsx   # email, role and the sign-out button
+│   ├── account-menu.tsx   # email, role, links to the account (and profile) and the sign-out button
 │   ├── inline-script.tsx  # script that runs before the first paint, without React's warning
 │   ├── language-switcher.tsx # links to the same page in each language
 │   ├── main-nav.tsx       # the public sections of the site, marking the current one
+│   ├── profile-details.tsx # the patient's profile, read on the server behind requireSession
+│   ├── profile-form.tsx   # changes the profile and the reminder preferences
 │   ├── login-form.tsx     # sign-in form: errors next to each field, announced failures
 │   ├── register-form.tsx  # patient sign-up form, signs in right after creating the account
 │   ├── doctor-directory.tsx # the doctors as cards, with a filter by service in the URL
@@ -237,10 +241,15 @@ src/
 │   ├── cn.ts              # joins classes and resolves Tailwind conflicts
 │   ├── use-focus-first-invalid.ts # moves the focus to the first field with an error
 │   └── use-hydrated.ts    # whether React has hydrated the page yet
+├── patients/
+│   ├── profile.ts         # getMyProfile(): the patient's own profile, read on the server
+│   ├── profile-schema.ts  # the API's rules for a profile change, checked before sending
+│   └── types.ts           # Patient
 ├── store/
 │   ├── api-health-saga.ts # checks the API every minute, backs off on failures, pauses in hidden tabs
 │   ├── api-status-slice.ts # whether the API answers, with the checkApiHealth thunk
 │   ├── hooks.ts           # typed useAppDispatch, useAppSelector and useAppStore
+│   ├── profile-slice.ts   # saving the profile, with the saveProfile thunk
 │   ├── session-expiry-saga.ts # counts down to the end of the session: warning, then end
 │   ├── session-expiry-slice.ts # when the session ends and whether the warning is open
 │   ├── session-slice.ts   # who signed in, with the signIn, signUp and signOut thunks
@@ -258,15 +267,16 @@ vitest.config.mts          # unit tests and the 100% coverage threshold
 
 ## Architecture decisions
 
-| ADR                                                          | Decision                                                                           |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| [0001](docs/adr/0001-nextjs-app-router.md)                   | Next.js App Router with Cache Components, same origin as the API                   |
-| [0002](docs/adr/0002-tailwind-component-library.md)          | Component library with Tailwind and typed variants instead of styled-components    |
-| [0003](docs/adr/0003-redux-thunks-and-sagas.md)              | Redux Toolkit: thunks for requests, sagas for long-running flows                   |
-| [0004](docs/adr/0004-testing-strategy.md)                    | Testing strategy and 100% coverage                                                 |
-| [0005](docs/adr/0005-i18n-without-a-library.md)              | Spanish and English with Next.js routing and typed dictionaries, no library        |
-| [0006](docs/adr/0006-session-from-the-api-cookie.md)         | Session: the API's httpOnly cookie, read on the server through a Data Access Layer |
-| [0007](docs/adr/0007-public-catalog-cached-on-the-server.md) | Public catalog: read from the API on the server and cached with `use cache`        |
+| ADR                                                          | Decision                                                                            |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| [0001](docs/adr/0001-nextjs-app-router.md)                   | Next.js App Router with Cache Components, same origin as the API                    |
+| [0002](docs/adr/0002-tailwind-component-library.md)          | Component library with Tailwind and typed variants instead of styled-components     |
+| [0003](docs/adr/0003-redux-thunks-and-sagas.md)              | Redux Toolkit: thunks for requests, sagas for long-running flows                    |
+| [0004](docs/adr/0004-testing-strategy.md)                    | Testing strategy and 100% coverage                                                  |
+| [0005](docs/adr/0005-i18n-without-a-library.md)              | Spanish and English with Next.js routing and typed dictionaries, no library         |
+| [0006](docs/adr/0006-session-from-the-api-cookie.md)         | Session: the API's httpOnly cookie, read on the server through a Data Access Layer  |
+| [0007](docs/adr/0007-public-catalog-cached-on-the-server.md) | Public catalog: read from the API on the server and cached with `use cache`         |
+| [0008](docs/adr/0008-private-data-on-the-server.md)          | Private data: read on the server with the visitor's session, changed through thunks |
 
 ## Roadmap
 

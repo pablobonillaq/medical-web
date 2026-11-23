@@ -5,6 +5,7 @@ describe('isProtectedPath', () => {
   it('protects each page in the list and the pages under it', () => {
     expect(isProtectedPath('/account')).toBe(true)
     expect(isProtectedPath('/account/settings')).toBe(true)
+    expect(isProtectedPath('/profile')).toBe(true)
   })
 
   it('leaves the other pages open', () => {

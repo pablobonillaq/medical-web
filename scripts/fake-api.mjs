@@ -55,6 +55,32 @@ const doctors = [
 // The accounts, by email. Patients who sign up in the tests are added here, in memory only
 const accounts = new Map([[patient.email, { user: patient, password: PASSWORD }]])
 
+// Each patient's profile, by the id of their account, as GET /patients/me answers it
+const profile = (user, data) => ({
+  id: randomUUID(),
+  firstName: data.firstName,
+  lastName: data.lastName,
+  birthDate: data.birthDate,
+  phone: `+52${String(data.phone).replace(/\D/g, '').slice(-10)}`,
+  contactEmail: data.contactEmail ?? null,
+  email: user.email,
+  emailRemindersOptIn: data.emailRemindersOptIn ?? false,
+  whatsappOptIn: data.whatsappOptIn ?? false,
+  updatedAt: new Date().toISOString(),
+})
+const profiles = new Map([
+  [
+    patient.id,
+    profile(patient, {
+      firstName: 'Luz',
+      lastName: 'Méndez',
+      birthDate: '1990-05-21',
+      phone: '5512345678',
+      emailRemindersOptIn: true,
+    }),
+  ],
+])
+
 // A token shaped like the API's, valid for an hour. The signature is fake: nothing checks it
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url')
 const decode = (part) => JSON.parse(Buffer.from(part, 'base64url').toString('utf8'))
@@ -98,12 +124,14 @@ const routes = {
   }),
 
   'POST /auth/register': async (request) => {
-    const { email, password, firstName, lastName } = await readJson(request)
+    const data = await readJson(request)
+    const { email, password } = data
     if (accounts.has(email)) return { status: 409, body: { error: 'Email is already registered' } }
 
     const user = { id: randomUUID(), email, role: 'patient' }
     accounts.set(email, { user, password })
-    return { status: 201, body: { patient: { id: randomUUID(), firstName, lastName } } }
+    profiles.set(user.id, profile(user, data))
+    return { status: 201, body: { patient: profiles.get(user.id) } }
   },
 
   'POST /auth/login': async (request) => {
@@ -131,6 +159,14 @@ const routes = {
 
   'GET /doctors': () => ({ status: 200, body: { doctors } }),
 
+  // Only the signed-in patient's own profile
+  'GET /patients/me': (request) => {
+    const user = sessionUser(request)
+    if (!user) return { status: 401, body: { error: 'Authentication required' } }
+    if (user.role !== 'patient') return { status: 403, body: { error: 'Forbidden' } }
+    return { status: 200, body: { patient: profiles.get(user.id) } }
+  },
+
   'GET /auth/me': (request) => {
     const user = sessionUser(request)
     return user
@@ -139,9 +175,39 @@ const routes = {
   },
 }
 
+// Routes with an id in the path: the handler gets it after the request
+const routesWithId = [
+  {
+    method: 'PATCH',
+    path: /^\/patients\/([^/]+)$/,
+    // A patient changes only their own profile; anyone else's id is a 404, as in the real API
+    handler: async (request, id) => {
+      const user = sessionUser(request)
+      if (!user) return { status: 401, body: { error: 'Authentication required' } }
+      const current = profiles.get(user.id)
+      if (current?.id !== id) return { status: 404, body: { error: 'Patient not found' } }
+
+      const changes = await readJson(request)
+      const updated = { ...profile(user, { ...current, ...changes }), id }
+      profiles.set(user.id, updated)
+      return { status: 200, body: { patient: updated } }
+    },
+  },
+]
+
+const findRoute = (method, pathname) => {
+  const route = routes[`${method} ${pathname}`]
+  if (route) return route
+  for (const { method: routeMethod, path, handler } of routesWithId) {
+    const match = routeMethod === method && path.exec(pathname)
+    if (match) return (request) => handler(request, match[1])
+  }
+  return undefined
+}
+
 createServer(async (request, response) => {
   const { pathname } = new URL(request.url ?? '/', 'http://localhost')
-  const route = routes[`${request.method} ${pathname}`]
+  const route = findRoute(request.method, pathname)
   const {
     status,
     body,

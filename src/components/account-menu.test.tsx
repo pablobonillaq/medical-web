@@ -22,11 +22,15 @@ beforeEach(() => {
   vi.mocked(useRouter).mockReturnValue(router as unknown as ReturnType<typeof useRouter>)
 })
 
-const renderMenu = (labels = es.account, locale: 'es' | 'en' = 'es') =>
+const renderMenu = (
+  labels = es.account,
+  locale: 'es' | 'en' = 'es',
+  user: (typeof testUsers)[keyof typeof testUsers] = testUsers.employee,
+) =>
   render(
     <StoreProvider>
       <ToastProvider>
-        <AccountMenu user={testUsers.employee} locale={locale} labels={labels} />
+        <AccountMenu user={user} locale={locale} labels={labels} />
       </ToastProvider>
     </StoreProvider>,
   )
@@ -44,6 +48,18 @@ describe('AccountMenu', () => {
     renderMenu()
 
     expect(screen.getByRole('link', { name: 'Mi cuenta' })).toHaveAttribute('href', '/es/account')
+  })
+
+  it('links patients to their profile too', () => {
+    renderMenu(es.account, 'es', testUsers.patient)
+
+    expect(screen.getByRole('link', { name: 'Mi perfil' })).toHaveAttribute('href', '/es/profile')
+  })
+
+  it('has no profile link for the staff', () => {
+    renderMenu()
+
+    expect(screen.queryByRole('link', { name: 'Mi perfil' })).not.toBeInTheDocument()
   })
 
   it('signs out and goes to the home page', async () => {

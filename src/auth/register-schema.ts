@@ -3,7 +3,7 @@ import { emailField, passwordField } from './login-schema'
 
 // The same rules as the API (medical-api, patients.schema.ts), checked before sending. The
 // messages are keys of the dictionary (register.fieldErrors), not texts
-const nameField = z
+export const nameField = z
   .string()
   .trim()
   .min(1, { error: 'required' })
@@ -12,7 +12,7 @@ const nameField = z
 
 // "1990-05-21", the value of <input type="date">: a real date, not in the future and not
 // before 1900. today is the visitor's date, in the same format
-const birthDateField = (today: string) =>
+export const birthDateField = (today: string) =>
   z
     .string()
     .min(1, { error: 'required' })
@@ -21,7 +21,7 @@ const birthDateField = (today: string) =>
     .refine((date) => date >= '1900-01-01', { error: 'tooOld' })
 
 // A Mexican mobile number: 10 digits, with or without +52, spaces, dashes or parentheses
-const phoneField = z
+export const phoneField = z
   .string()
   .transform((phone) => phone.replace(/[\s()-]/g, ''))
   .pipe(

@@ -8,7 +8,7 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 a 6 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación, páginas públicas); sigue la Fase 7 (área del paciente).
+> **Estado:** en desarrollo. Fases 1 a 6 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación, páginas públicas); Fase 7 (área del paciente) en curso: perfil listo.
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
@@ -160,10 +160,11 @@ docs/
 e2e/                       # pruebas end-to-end y de axe con Playwright
 mocks/                     # API simulada para las pruebas (MSW)
 scripts/
-└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, autenticación, servicios, médicos)
+└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, autenticación, servicios, médicos, perfil del paciente)
 src/
 ├── api/
-│   └── client.ts          # fetch para /api: JSON de ida y vuelta, errores como ApiError
+│   ├── client.ts          # fetch para /api: JSON de ida y vuelta, errores como ApiError
+│   └── server.ts          # fetch para Server Components, con la sesión del visitante (sin caché)
 ├── auth/
 │   ├── constants.ts       # el nombre de la cookie de sesión
 │   ├── guard.ts           # requireSession(): sin sesión → iniciar sesión, otro rol → 403
@@ -185,6 +186,7 @@ src/
 │       ├── forbidden.tsx  # página 403, para un rol que no puede ver una página
 │       ├── layout.tsx     # layout raíz: <html lang>, encabezado, región principal, pie, avisos
 │       ├── login/         # página de inicio de sesión
+│       ├── profile/       # el perfil del paciente (solo pacientes)
 │       ├── register/      # página de registro de pacientes
 │       ├── doctors/       # los médicos de la clínica, con filtro por servicio (pública)
 │       ├── services/      # los servicios de la clínica (pública)
@@ -193,10 +195,12 @@ src/
 ├── components/
 │   ├── account-details.tsx # correo y rol de quien inició sesión, detrás de requireSession
 │   ├── account-area.tsx   # la cuenta en el encabezado: quién inició sesión, detrás de <Suspense>
-│   ├── account-menu.tsx   # correo, rol y el botón para cerrar sesión
+│   ├── account-menu.tsx   # correo, rol, enlaces a la cuenta (y al perfil) y el botón para cerrar sesión
 │   ├── inline-script.tsx  # script que corre antes del primer pintado, sin el aviso de React
 │   ├── language-switcher.tsx # enlaces a la misma página en cada idioma
 │   ├── main-nav.tsx       # las secciones públicas del sitio, marcando la actual
+│   ├── profile-details.tsx # el perfil del paciente, leído en el servidor detrás de requireSession
+│   ├── profile-form.tsx   # cambia el perfil y las preferencias de recordatorios
 │   ├── login-form.tsx     # formulario de inicio de sesión: errores junto a cada campo, fallas anunciadas
 │   ├── register-form.tsx  # formulario de registro de pacientes, inicia sesión al crear la cuenta
 │   ├── doctor-directory.tsx # los médicos en tarjetas, con un filtro por servicio en la URL
@@ -237,10 +241,15 @@ src/
 │   ├── cn.ts              # une clases y resuelve los choques de Tailwind
 │   ├── use-focus-first-invalid.ts # mueve el foco al primer campo con error
 │   └── use-hydrated.ts    # si React ya hidrató la página
+├── patients/
+│   ├── profile.ts         # getMyProfile(): el perfil del paciente, leído en el servidor
+│   ├── profile-schema.ts  # las reglas de la API para cambiar el perfil, revisadas antes de enviar
+│   └── types.ts           # Patient
 ├── store/
 │   ├── api-health-saga.ts # revisa la API cada minuto, espera más tras fallas, se pausa en pestañas ocultas
 │   ├── api-status-slice.ts # si la API responde, con el thunk checkApiHealth
 │   ├── hooks.ts           # useAppDispatch, useAppSelector y useAppStore tipados
+│   ├── profile-slice.ts   # guardar el perfil, con el thunk saveProfile
 │   ├── session-expiry-saga.ts # cuenta regresiva al vencimiento: primero el aviso, luego el fin
 │   ├── session-expiry-slice.ts # cuándo vence la sesión y si el aviso está abierto
 │   ├── session-slice.ts   # quién inició sesión, con los thunks signIn, signUp y signOut
@@ -269,6 +278,7 @@ Están escritas en inglés, como el código.
 | [0005](docs/adr/0005-i18n-without-a-library.md)              | Español e inglés con las rutas de Next.js y diccionarios tipados, sin librería            |
 | [0006](docs/adr/0006-session-from-the-api-cookie.md)         | Sesión: la cookie httpOnly de la API, leída en el servidor con una capa de acceso a datos |
 | [0007](docs/adr/0007-public-catalog-cached-on-the-server.md) | Catálogo público: leído de la API en el servidor y guardado en caché con `use cache`      |
+| [0008](docs/adr/0008-private-data-on-the-server.md)          | Datos privados: leídos en el servidor con la sesión del visitante, cambiados con thunks   |
 
 ## Roadmap
 

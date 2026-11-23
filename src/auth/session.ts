@@ -1,6 +1,6 @@
-import { cookies, headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import { cache } from 'react'
-import { env } from '@/config/env'
+import { serverApiRequest } from '@/api/server'
 import { SESSION_COOKIE } from './constants'
 import { readTokenExpiry } from './token'
 import type { Role, Session } from './types'
@@ -20,28 +20,14 @@ export const getSession = cache(async (): Promise<Session | null> => {
   const expiresAt = readTokenExpiry(token)
   if (!expiresAt) return null
 
-  const requestHeaders = new Headers({
-    Accept: 'application/json',
-    Cookie: `${SESSION_COOKIE}=${token}`,
-  })
-  // The rate limits of the API count requests by the visitor's address, not by this server's
-  const forwardedFor = (await headers()).get('x-forwarded-for')
-  if (forwardedFor) requestHeaders.set('X-Forwarded-For', forwardedFor)
-
-  let response: Response
   try {
-    response = await fetch(`${env.API_URL.replace(/\/+$/, '')}/auth/me`, {
-      headers: requestHeaders,
-    })
+    const { user } = await serverApiRequest<MeResponse>('/auth/me')
+    return {
+      user: { id: user.id, email: user.email, role: user.role },
+      expiresAt: expiresAt.toISOString(),
+    }
   } catch {
-    // The API is down: nobody can be signed in
+    // The API rejected the token, or is down: nobody can be signed in
     return null
-  }
-  if (!response.ok) return null
-
-  const { user } = (await response.json()) as MeResponse
-  return {
-    user: { id: user.id, email: user.email, role: user.role },
-    expiresAt: expiresAt.toISOString(),
   }
 })
