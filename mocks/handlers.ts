@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw/http'
-import { testServices } from './catalog'
+import { testDoctors, testServices } from './catalog'
 
 // The default answers of the fake API, shaped like the real Express API. A test that needs
 // another answer replaces one with server.use(...) for that test only.
@@ -15,4 +15,5 @@ export const handlers = [
   ),
   // The Next.js server reads the catalog straight from the API (API_URL), without /api
   http.get('*/services', () => HttpResponse.json({ services: testServices })),
+  http.get('*/doctors', () => HttpResponse.json({ doctors: testDoctors })),
 ]

@@ -9,6 +9,7 @@ const pages = [
   { name: 'sign-up page', path: '/es/register' },
   { name: 'services page', path: '/es/services' },
   { name: 'services page in English', path: '/en/services' },
+  { name: 'doctors page', path: '/es/doctors' },
 ]
 
 for (const theme of ['light', 'dark'] as const) {

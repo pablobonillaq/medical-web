@@ -1,4 +1,5 @@
 import { server } from '@mocks/node'
+import { testServices } from '@mocks/catalog'
 import { render, screen, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw/http'
 import { describe, expect, it, vi } from 'vitest'
@@ -21,6 +22,15 @@ describe('ServiceList', () => {
     expect(items[0]).toHaveTextContent('Valoración médica de primera vez o de seguimiento.')
     expect(items[0]).toHaveTextContent('Duración: 30 minutos')
     expect(items[1]).toHaveTextContent('Duración: 45 minutos')
+  })
+
+  it('links each service to the doctors who offer it, telling the links apart', async () => {
+    render(await ServiceList({ locale: 'es', labels: es.servicesPage }))
+
+    expect(screen.getByRole('link', { name: 'Ver médicos de Ultrasonido' })).toHaveAttribute(
+      'href',
+      `/es/doctors?service=${testServices[1].id}`,
+    )
   })
 
   it('marks the catalog as Spanish on pages in other languages', async () => {

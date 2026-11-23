@@ -1,9 +1,9 @@
-import { testServices } from '@mocks/catalog'
+import { testDoctors, testServices } from '@mocks/catalog'
 import { server } from '@mocks/node'
 import { http, HttpResponse } from 'msw/http'
 import { cacheLife, cacheTag } from 'next/cache'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getServices } from './catalog'
+import { getDoctors, getServices } from './catalog'
 
 // The cache only exists inside Next.js: here the test checks how long each answer would be kept
 vi.mock('next/cache', () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }))
@@ -54,5 +54,32 @@ describe('getServices', () => {
     expect(await getServices()).toBeNull()
     expect(cacheLife).toHaveBeenCalledWith('seconds')
     expect(cacheLife).not.toHaveBeenCalledWith('hours')
+  })
+})
+
+describe('getDoctors', () => {
+  it('returns the public profiles with only what the pages show, cached for hours', async () => {
+    const doctors = await getDoctors()
+
+    expect(doctors?.[1]).toEqual({
+      id: testDoctors[1].id,
+      firstName: 'Luis',
+      lastName: 'Ruiz',
+      specialty: 'Radiología',
+      licenseNumber: '7654321',
+      services: [
+        { id: testServices[0].id, name: 'Consulta general' },
+        { id: testServices[1].id, name: 'Ultrasonido' },
+      ],
+    })
+    expect(cacheTag).toHaveBeenCalledWith('doctors')
+    expect(cacheLife).toHaveBeenCalledWith('hours')
+  })
+
+  it('returns null and tries again soon when the API fails', async () => {
+    server.use(http.get('*/doctors', () => HttpResponse.error()))
+
+    expect(await getDoctors()).toBeNull()
+    expect(cacheLife).toHaveBeenCalledWith('seconds')
   })
 })

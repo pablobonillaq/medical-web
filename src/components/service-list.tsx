@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { CATALOG_LANGUAGE, getServices } from '@/catalog/catalog'
 import { Alert } from '@/components/ui/alert'
 import { Card, CardDescription, CardTitle } from '@/components/ui/card'
@@ -42,10 +43,23 @@ export async function ServiceList({ locale, labels }: ServiceListProps) {
             {service.description && (
               <CardDescription lang={catalogLang}>{service.description}</CardDescription>
             )}
-            <p className="mt-auto pt-4 text-sm">
-              <span className="text-muted-foreground">{labels.duration}:</span>{' '}
-              {duration.format(service.durationMinutes)}
-            </p>
+            <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-4 text-sm">
+              <p>
+                <span className="text-muted-foreground">{labels.duration}:</span>{' '}
+                {duration.format(service.durationMinutes)}
+              </p>
+              {/* The hidden words tell the links apart out of context: "Ver médicos de Ultrasonido".
+                  The space stays outside them, so every browser and jsdom read one single space */}
+              <Link
+                href={`/${locale}/doctors?service=${service.id}`}
+                className="inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4"
+              >
+                {labels.seeDoctors}{' '}
+                <VisuallyHidden>
+                  {labels.seeDoctorsFor} <span lang={catalogLang}>{service.name}</span>
+                </VisuallyHidden>
+              </Link>
+            </div>
           </Card>
         </li>
       ))}

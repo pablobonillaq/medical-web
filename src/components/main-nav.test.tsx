@@ -18,6 +18,10 @@ describe('MainNav', () => {
       'href',
       '/en/services',
     )
+    expect(within(nav).getByRole('link', { name: 'Doctors' })).toHaveAttribute(
+      'href',
+      '/en/doctors',
+    )
   })
 
   it('marks the section of the current page', () => {

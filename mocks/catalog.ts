@@ -20,3 +20,26 @@ export const testServices = [
     updatedAt: '2026-11-01T10:00:00.000Z',
   },
 ]
+
+// GET /doctors as a visitor sees it: the public profile, sorted by last name
+export const testDoctors = [
+  {
+    id: '0190a7b2-2222-7000-8000-000000000001',
+    firstName: 'Ana',
+    lastName: 'Garay',
+    specialty: 'Medicina general',
+    licenseNumber: '12345678',
+    services: [{ id: testServices[0].id, name: 'Consulta general', durationMinutes: 30 }],
+  },
+  {
+    id: '0190a7b2-2222-7000-8000-000000000002',
+    firstName: 'Luis',
+    lastName: 'Ruiz',
+    specialty: 'Radiología',
+    licenseNumber: '7654321',
+    services: [
+      { id: testServices[0].id, name: 'Consulta general', durationMinutes: 30 },
+      { id: testServices[1].id, name: 'Ultrasonido', durationMinutes: 45 },
+    ],
+  },
+]

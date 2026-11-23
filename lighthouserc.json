@@ -6,7 +6,8 @@
       "url": [
         "http://localhost:3001/es",
         "http://localhost:3001/en",
-        "http://localhost:3001/es/services"
+        "http://localhost:3001/es/services",
+        "http://localhost:3001/es/doctors"
       ],
       "numberOfRuns": 3
     },

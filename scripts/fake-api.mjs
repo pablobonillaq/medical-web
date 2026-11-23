@@ -32,6 +32,26 @@ const services = [
   service(4, 'Ultrasonido', null, 45),
 ]
 
+// The active doctors as a visitor sees them: the public profile, sorted by last name
+const offering = (...ids) => services.filter((_, index) => ids.includes(index + 1))
+const doctor = (id, firstName, lastName, specialty, licenseNumber, serviceIds) => ({
+  id: `0190a7b2-2222-7000-8000-00000000000${id}`,
+  firstName,
+  lastName,
+  specialty,
+  licenseNumber,
+  services: offering(...serviceIds).map(({ id, name, durationMinutes }) => ({
+    id,
+    name,
+    durationMinutes,
+  })),
+})
+const doctors = [
+  doctor(1, 'Ana', 'Garay', 'Medicina general', '12345678', [1, 2]),
+  doctor(2, 'Sofía', 'Morales', 'Pediatría', '23456789', [1, 3]),
+  doctor(3, 'Luis', 'Ruiz', 'Radiología', '7654321', [4]),
+]
+
 // The accounts, by email. Patients who sign up in the tests are added here, in memory only
 const accounts = new Map([[patient.email, { user: patient, password: PASSWORD }]])
 
@@ -106,8 +126,10 @@ const routes = {
     headers: { 'Set-Cookie': `${SESSION_COOKIE}=; Max-Age=0; Path=/; HttpOnly; SameSite=Strict` },
   }),
 
-  // Public: anyone can see the services, as in the real API
+  // Public: anyone can see the services and doctors, as in the real API
   'GET /services': () => ({ status: 200, body: { services } }),
+
+  'GET /doctors': () => ({ status: 200, body: { doctors } }),
 
   'GET /auth/me': (request) => {
     const user = sessionUser(request)

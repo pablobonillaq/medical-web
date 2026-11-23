@@ -14,7 +14,10 @@ type MainNavProps = {
 // screen readers and for the style; a page inside a section (/services/…) counts as that section
 export function MainNav({ locale, labels }: MainNavProps) {
   const pathname = usePathname()
-  const links = [{ href: `/${locale}/services`, label: labels.services }]
+  const links = [
+    { href: `/${locale}/services`, label: labels.services },
+    { href: `/${locale}/doctors`, label: labels.doctors },
+  ]
 
   return (
     <nav aria-label={labels.label}>

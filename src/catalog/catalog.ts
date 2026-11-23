@@ -18,6 +18,20 @@ export type Service = z.infer<typeof serviceSchema>
 
 const servicesResponseSchema = z.object({ services: z.array(serviceSchema) })
 
+// The public profile of a doctor, as the API gives it to visitors
+const doctorSchema = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  specialty: z.string(),
+  licenseNumber: z.string(),
+  services: z.array(z.object({ id: z.string(), name: z.string() })),
+})
+
+export type Doctor = z.infer<typeof doctorSchema>
+
+const doctorsResponseSchema = z.object({ doctors: z.array(doctorSchema) })
+
 // The API can take this long before the page gives up on it. Without a limit, an API that never
 // answers would hang the build
 const TIMEOUT_MS = 5_000
@@ -54,4 +68,20 @@ export async function getServices(): Promise<Service[] | null> {
 
   cacheLife('hours')
   return data.services
+}
+
+// The active doctors with the services they offer, sorted by last name. Cached like the services
+export async function getDoctors(): Promise<Doctor[] | null> {
+  'use cache'
+  cacheTag('doctors')
+
+  const data = await fetchPublic('/doctors', doctorsResponseSchema)
+  if (!data) {
+    // As with the services: try again soon, and keep the failure out of the build
+    cacheLife('seconds')
+    return null
+  }
+
+  cacheLife('hours')
+  return data.doctors
 }

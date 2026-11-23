@@ -8,7 +8,7 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 a 5 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación); Fase 6 (páginas públicas) en curso: página de servicios lista.
+> **Estado:** en desarrollo. Fases 1 a 5 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación); Fase 6 (páginas públicas) en curso: páginas de servicios y médicos listas.
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
@@ -106,7 +106,7 @@ Playwright también inicia un sustituto de la API de Express en el puerto 3000 (
 
 ### Lighthouse
 
-**Lighthouse CI** mide `/es`, `/en` y `/es/services` sobre el build de producción, tres veces cada una, y falla si una puntuación baja del mínimo (`lighthouserc.json`): accesibilidad **100**, buenas prácticas 95, SEO 90 y rendimiento 90 (la ejecución mediana, con un perfil de celular con red y CPU limitadas). La página 404 queda fuera a propósito: Lighthouse baja el SEO de cualquier página que responde 404.
+**Lighthouse CI** mide `/es`, `/en`, `/es/services` y `/es/doctors` sobre el build de producción, tres veces cada una, y falla si una puntuación baja del mínimo (`lighthouserc.json`): accesibilidad **100**, buenas prácticas 95, SEO 90 y rendimiento 90 (la ejecución mediana, con un perfil de celular con red y CPU limitadas). La página 404 queda fuera a propósito: Lighthouse baja el SEO de cualquier página que responde 404.
 
 ```bash
 npm run build
@@ -160,7 +160,7 @@ docs/
 e2e/                       # pruebas end-to-end y de axe con Playwright
 mocks/                     # API simulada para las pruebas (MSW)
 scripts/
-└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, autenticación, servicios)
+└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, autenticación, servicios, médicos)
 src/
 ├── api/
 │   └── client.ts          # fetch para /api: JSON de ida y vuelta, errores como ApiError
@@ -175,7 +175,7 @@ src/
 │   ├── token.ts           # cuándo vence el token de la sesión
 │   └── types.ts           # roles, SessionUser y Session
 ├── catalog/
-│   └── catalog.ts         # los servicios de la clínica, leídos de la API y en caché para todos
+│   └── catalog.ts         # los servicios y médicos de la clínica, leídos de la API y en caché para todos
 ├── app/                   # rutas (App Router)
 │   ├── globals.css        # Tailwind y tokens de diseño (colores con light-dark())
 │   ├── globals.test.ts    # revisa el contraste WCAG de cada par de colores, en los dos temas
@@ -186,6 +186,7 @@ src/
 │       ├── layout.tsx     # layout raíz: <html lang>, encabezado, región principal, pie, avisos
 │       ├── login/         # página de inicio de sesión
 │       ├── register/      # página de registro de pacientes
+│       ├── doctors/       # los médicos de la clínica, con filtro por servicio (pública)
 │       ├── services/      # los servicios de la clínica (pública)
 │       ├── not-found.tsx  # página 404, dentro del layout y en el idioma de la URL
 │       └── page.tsx       # página de inicio
@@ -198,6 +199,7 @@ src/
 │   ├── main-nav.tsx       # las secciones públicas del sitio, marcando la actual
 │   ├── login-form.tsx     # formulario de inicio de sesión: errores junto a cada campo, fallas anunciadas
 │   ├── register-form.tsx  # formulario de registro de pacientes, inicia sesión al crear la cuenta
+│   ├── doctor-directory.tsx # los médicos en tarjetas, con un filtro por servicio en la URL
 │   ├── api-status.tsx     # si el servicio está disponible, en el pie
 │   ├── site-footer.tsx    # pie de cada página
 │   ├── session-expiry-dialog.tsx # avisa antes de que venza la sesión, y cuando venció
