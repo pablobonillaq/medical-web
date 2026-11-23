@@ -33,6 +33,15 @@ describe('ServiceList', () => {
     )
   })
 
+  it('can show only the first services, with headings for a section', async () => {
+    render(
+      await ServiceList({ locale: 'es', labels: es.servicesPage, limit: 1, headingLevel: 'h3' }),
+    )
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1)
+    expect(screen.getByRole('heading', { level: 3, name: 'Consulta general' })).toBeInTheDocument()
+  })
+
   it('marks the catalog as Spanish on pages in other languages', async () => {
     render(await ServiceList({ locale: 'en', labels: en.servicesPage }))
 

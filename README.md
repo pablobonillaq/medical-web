@@ -8,7 +8,7 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phases 1 to 5 completed (base setup, design system, languages and app shell, data layer, authentication); Phase 6 (public pages) in progress: services and doctors pages done.
+> **Status:** in development. Phases 1 to 6 completed (base setup, design system, languages and app shell, data layer, authentication, public pages); Phase 7 (patient area) next.
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
@@ -17,7 +17,7 @@ Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appo
 - [x] Component library with typed variants, documented in Storybook
 - [x] Spanish and English (`/es`, `/en`), with the language chosen from the browser or the last visit
 - [x] Sign in, patient sign-up and sign-out; routes protected by role on the server; a warning before the session ends
-- [ ] Public pages: home, services and doctors
+- [x] Public pages: home, services and doctors, read from the API and cached for every visitor
 - [ ] Patients: book, cancel, reschedule and confirm appointments; see who opened their record
 - [ ] Front desk: patient search, walk-in patients, booking for a patient, daily agenda
 - [ ] Doctors: agenda, weekly schedule and time off, attendance
@@ -275,7 +275,7 @@ vitest.config.mts          # unit tests and the 100% coverage threshold
 3. ~~Languages and app shell: Spanish and English, layout, Playwright with axe, Lighthouse CI~~ ✅
 4. ~~Data layer: Redux Toolkit store, API client, thunks, sagas and MSW~~ ✅
 5. ~~Authentication: sign in, sign-up, sign-out, protected routes by role, session expiry~~ ✅ (the navigation by role grows with each area)
-6. Public pages: home, services and doctors
+6. ~~Public pages: home, services and doctors~~ ✅
 7. Patient area: profile, booking, my appointments, access log
 8. Front desk: patient search, walk-in patients, booking for a patient, daily agenda
 9. Doctor area: agenda, schedule and time off, attendance

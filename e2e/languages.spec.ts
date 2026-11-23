@@ -36,7 +36,7 @@ test('the language switcher opens the same page in the other language', async ({
 
   await expect(page).toHaveURL('/en')
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Clinic')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Your clinic, online')
   await expect(page).toHaveTitle('Clinic')
 })
 

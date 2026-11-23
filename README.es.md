@@ -8,7 +8,7 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 a 5 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación); Fase 6 (páginas públicas) en curso: páginas de servicios y médicos listas.
+> **Estado:** en desarrollo. Fases 1 a 6 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación, páginas públicas); sigue la Fase 7 (área del paciente).
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
@@ -17,7 +17,7 @@ Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agen
 - [ ] Librería de componentes con variantes tipadas, documentada en Storybook
 - [x] Español e inglés (`/es`, `/en`), con el idioma elegido según el navegador o la última visita
 - [x] Inicio de sesión, registro de pacientes y cierre de sesión; rutas protegidas por rol desde el servidor; aviso antes de que venza la sesión
-- [ ] Páginas públicas: inicio, servicios y médicos
+- [x] Páginas públicas: inicio, servicios y médicos, leídos de la API y en caché para todos
 - [ ] Pacientes: reservar, cancelar, reprogramar y confirmar citas; ver quién abrió su expediente
 - [ ] Recepción: búsqueda de pacientes, pacientes sin cuenta, reservas para un paciente, agenda del día
 - [ ] Médicos: agenda, horario semanal y días libres, asistencia
@@ -277,7 +277,7 @@ Están escritas en inglés, como el código.
 3. ~~Idiomas y estructura: español e inglés, layout, Playwright con axe, Lighthouse CI~~ ✅
 4. ~~Capa de datos: store de Redux Toolkit, cliente de la API, thunks, sagas y MSW~~ ✅
 5. ~~Autenticación: inicio de sesión, registro, cierre de sesión, rutas protegidas por rol, vencimiento de sesión~~ ✅ (la navegación por rol crece con cada área)
-6. Páginas públicas: inicio, servicios y médicos
+6. ~~Páginas públicas: inicio, servicios y médicos~~ ✅
 7. Área del paciente: perfil, reservas, mis citas, registro de accesos
 8. Recepción: búsqueda de pacientes, pacientes sin cuenta, reservas para un paciente, agenda del día
 9. Área del médico: agenda, horario y días libres, asistencia

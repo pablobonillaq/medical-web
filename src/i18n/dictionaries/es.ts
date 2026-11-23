@@ -161,8 +161,17 @@ export const es = {
     },
   },
   home: {
-    title: 'Clínica',
+    title: 'Tu clínica, en línea',
     intro: 'Agenda tus citas, consulta tu expediente y escribe a la recepción desde un solo lugar.',
+    seeServices: 'Ver servicios',
+    meetDoctors: 'Conocer a los médicos',
+    servicesTitle: 'Servicios',
+    allServices: 'Ver todos los servicios',
+    patientsTitle: '¿Eres paciente?',
+    patientsIntro:
+      'Crea tu cuenta para agendar tus citas y consultar tu información. Si ya tienes una, inicia sesión.',
+    register: 'Crear cuenta',
+    signIn: 'Iniciar sesión',
   },
   servicesPage: {
     title: 'Servicios',

@@ -10,11 +10,20 @@ import type { Dictionary } from '@/i18n/dictionaries/es'
 type ServiceListProps = {
   locale: Locale
   labels: Dictionary['servicesPage']
+  // Shows only the first ones, as the home page does
+  limit?: number
+  // The level of each service's heading: h2 under the page h1, h3 inside a section
+  headingLevel?: 'h2' | 'h3'
 }
 
 // The clinic's services, one card each. The list comes from the API, so the page puts it
 // behind <Suspense>
-export async function ServiceList({ locale, labels }: ServiceListProps) {
+export async function ServiceList({
+  locale,
+  labels,
+  limit,
+  headingLevel = 'h2',
+}: ServiceListProps) {
   const services = await getServices()
 
   if (!services) {
@@ -36,10 +45,12 @@ export async function ServiceList({ locale, labels }: ServiceListProps) {
 
   return (
     <ul className="grid gap-4 sm:grid-cols-2">
-      {services.map((service) => (
+      {services.slice(0, limit).map((service) => (
         <li key={service.id}>
           <Card className="flex h-full flex-col">
-            <CardTitle lang={catalogLang}>{service.name}</CardTitle>
+            <CardTitle as={headingLevel} lang={catalogLang}>
+              {service.name}
+            </CardTitle>
             {service.description && (
               <CardDescription lang={catalogLang}>{service.description}</CardDescription>
             )}

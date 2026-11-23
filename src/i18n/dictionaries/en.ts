@@ -162,9 +162,18 @@ export const en: Dictionary = {
     },
   },
   home: {
-    title: 'Clinic',
+    title: 'Your clinic, online',
     intro:
       'Book your appointments, check your medical record and message the front desk, all in one place.',
+    seeServices: 'See services',
+    meetDoctors: 'Meet the doctors',
+    servicesTitle: 'Services',
+    allServices: 'See all services',
+    patientsTitle: 'Are you a patient?',
+    patientsIntro:
+      'Create your account to book appointments and check your information. If you already have one, sign in.',
+    register: 'Create account',
+    signIn: 'Sign in',
   },
   servicesPage: {
     title: 'Services',
