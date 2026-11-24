@@ -15,3 +15,7 @@ export const addDays = (date: string, days: number) => {
   next.setUTCDate(next.getUTCDate() + days)
   return next.toISOString().slice(0, 10)
 }
+
+// Patients can cancel or reschedule up to this many hours before the appointment; with less
+// notice, they call the clinic (medical-api, appointments.constants.ts)
+export const MIN_PATIENT_NOTICE_HOURS = 2

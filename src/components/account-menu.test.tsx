@@ -50,13 +50,13 @@ describe('AccountMenu', () => {
     expect(screen.getByRole('link', { name: 'Mi cuenta' })).toHaveAttribute('href', '/es/account')
   })
 
-  it('links patients to their profile and to booking too', () => {
+  it('links patients to their profile and their appointments too', () => {
     renderMenu(es.account, 'es', testUsers.patient)
 
     expect(screen.getByRole('link', { name: 'Mi perfil' })).toHaveAttribute('href', '/es/profile')
-    expect(screen.getByRole('link', { name: 'Agendar cita' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Mis citas' })).toHaveAttribute(
       'href',
-      '/es/appointments/new',
+      '/es/appointments',
     )
   })
 

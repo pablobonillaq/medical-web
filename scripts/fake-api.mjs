@@ -76,7 +76,9 @@ const freeSlots = (doctorId, serviceId, date) => {
   if (daysAhead > 90) return { status: 400, body: { error: 'date can be at most 90 days ahead' } }
 
   const taken = [...appointments.values()]
+    // Cancelled appointments free their time, as in the real API
     .filter(({ appointment }) => appointment.doctor.id === doctorId)
+    .filter(({ appointment }) => ['scheduled', 'confirmed'].includes(appointment.status))
     .map(({ appointment }) => appointment.startsAt)
   const slots = []
   for (let minute = 9 * 60; minute + service.durationMinutes <= 13 * 60; minute += 15) {
@@ -253,6 +255,32 @@ const routes = {
     return { status: 201, body: { appointment } }
   },
 
+  // Only the patient's own appointments, filtered and paginated as in the real API
+  'GET /appointments': (request) => {
+    const user = sessionUser(request)
+    if (!user) return { status: 401, body: { error: 'Authentication required' } }
+    const query = new URL(request.url, 'http://localhost').searchParams
+    const from = query.get('from')
+    const to = query.get('to')
+    const page = Number(query.get('page') ?? 1)
+    const pageSize = Number(query.get('pageSize') ?? 20)
+    const direction = query.get('order') === 'desc' ? -1 : 1
+    const mine = [...appointments.values()]
+      .filter(({ userId }) => userId === user.id)
+      .map(({ appointment }) => appointment)
+      .filter(({ startsAt }) => (!from || startsAt >= from) && (!to || startsAt < to))
+      .sort((a, b) => direction * a.startsAt.localeCompare(b.startsAt))
+    return {
+      status: 200,
+      body: {
+        appointments: mine.slice((page - 1) * pageSize, page * pageSize),
+        page,
+        pageSize,
+        total: mine.length,
+      },
+    }
+  },
+
   'GET /auth/me': (request) => {
     const user = sessionUser(request)
     return user
@@ -261,8 +289,64 @@ const routes = {
   },
 }
 
+// The patient's own appointment that can still change, or the answer the API would give
+const changeable = (request, id) => {
+  const user = sessionUser(request)
+  if (!user) return { error: { status: 401, body: { error: 'Authentication required' } } }
+  const booked = appointments.get(id)
+  if (booked?.userId !== user.id) {
+    return { error: { status: 404, body: { error: 'Appointment not found' } } }
+  }
+  const { appointment } = booked
+  if (!['scheduled', 'confirmed'].includes(appointment.status)) {
+    return {
+      error: {
+        status: 409,
+        body: { error: 'Only scheduled or confirmed appointments can change' },
+      },
+    }
+  }
+  return { appointment }
+}
+
 // Routes with an id in the path: the handler gets it after the request
 const routesWithId = [
+  {
+    method: 'PATCH',
+    path: /^\/appointments\/([^/]+)\/status$/,
+    // Patients only confirm, before the appointment starts
+    handler: async (request, id) => {
+      const { appointment, error } = changeable(request, id)
+      if (error) return error
+      const { status } = await readJson(request)
+      if (status !== 'confirmed' || appointment.status !== 'scheduled') {
+        return { status: 409, body: { error: `Cannot change status to ${status}` } }
+      }
+      if (Date.parse(appointment.startsAt) <= Date.now()) {
+        return { status: 400, body: { error: 'Only upcoming appointments can be confirmed' } }
+      }
+      appointment.status = 'confirmed'
+      return { status: 200, body: { appointment } }
+    },
+  },
+  {
+    method: 'PATCH',
+    path: /^\/appointments\/([^/]+)\/cancel$/,
+    // Patients need at least 2 hours of notice; the reason is optional
+    handler: async (request, id) => {
+      const { appointment, error } = changeable(request, id)
+      if (error) return error
+      if (Date.parse(appointment.startsAt) - Date.now() < 2 * 3_600_000) {
+        return { status: 400, body: { error: 'Patients can cancel at least 2 hours in advance' } }
+      }
+      const { reason } = await readJson(request)
+      if (reason !== undefined && String(reason).trim().length < 3) {
+        return { status: 400, body: { error: 'reason must be at least 3 characters' } }
+      }
+      appointment.status = 'cancelled'
+      return { status: 200, body: { appointment } }
+    },
+  },
   {
     method: 'GET',
     path: /^\/appointments\/([^/]+)$/,

@@ -1,17 +1,19 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { appointmentDate, appointmentTime } from '@/appointments/format'
+import { patientActions } from '@/appointments/rules'
 import { getAppointment } from '@/appointments/server'
-import type { Appointment, AppointmentStatus } from '@/appointments/types'
+import type { Appointment } from '@/appointments/types'
 import { requireSession } from '@/auth/guard'
 import { CATALOG_LANGUAGE } from '@/catalog/catalog'
 import { Alert } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { VisuallyHidden } from '@/components/ui/visually-hidden'
-import { CLINIC_TIME_ZONE } from '@/config/clinic'
 import type { Locale } from '@/i18n/config'
 import type { Dictionary } from '@/i18n/dictionaries/es'
+import { AppointmentActions } from './appointment-actions'
+import { AppointmentStatusBadge } from './appointment-status-badge'
 
 type AppointmentDetailsProps = {
   locale: Locale
@@ -19,18 +21,9 @@ type AppointmentDetailsProps = {
   params: Promise<{ id: string }>
 }
 
-// The color only helps: the badge always says the status in words
-const STATUS_VARIANTS = {
-  scheduled: 'neutral',
-  confirmed: 'success',
-  cancelled: 'danger',
-  completed: 'primary',
-  no_show: 'warning',
-} as const satisfies Record<AppointmentStatus, string>
-
-// One of the patient's appointments, read on the server with their session. Someone else's
-// appointment, or one that does not exist, is a 404. It reads the URL and the session, so the
-// page puts it behind <Suspense>
+// One of the patient's appointments, read on the server with their session, with what the
+// patient may do with it now. Someone else's appointment, or one that does not exist, is a 404.
+// It reads the URL and the session, so the page puts it behind <Suspense>
 export async function AppointmentDetails({ locale, labels, params }: AppointmentDetailsProps) {
   const { id } = await params
   await requireSession({ path: `/appointments/${id}`, roles: ['patient'] })
@@ -47,9 +40,10 @@ export async function AppointmentDetails({ locale, labels, params }: Appointment
   }
   if (!appointment) notFound()
 
-  const startsAt = new Date(appointment.startsAt)
-  const format = (options: Intl.DateTimeFormatOptions) =>
-    new Intl.DateTimeFormat(locale, { ...options, timeZone: CLINIC_TIME_ZONE }).format(startsAt)
+  const date = appointmentDate(appointment.startsAt, locale)
+  const time = appointmentTime(appointment.startsAt, locale)
+  // Decided now, on the server; the API checks again when the patient acts
+  const actions = patientActions(appointment, new Date())
   const duration = new Intl.NumberFormat(locale, {
     style: 'unit',
     unit: 'minute',
@@ -63,16 +57,13 @@ export async function AppointmentDetails({ locale, labels, params }: Appointment
       <dl className="grid gap-4 sm:grid-cols-[auto_1fr] sm:gap-x-8">
         <dt className="text-sm text-muted-foreground">{labels.status}</dt>
         <dd>
-          <Badge variant={STATUS_VARIANTS[appointment.status]}>
-            {labels.statuses[appointment.status]}
-          </Badge>
+          <AppointmentStatusBadge status={appointment.status} labels={labels.statuses} />
         </dd>
         <dt className="text-sm text-muted-foreground">{labels.date}</dt>
-        <dd className="font-medium">{format({ dateStyle: 'full' })}</dd>
+        <dd className="font-medium">{date}</dd>
         <dt className="text-sm text-muted-foreground">{labels.time}</dt>
         <dd className="font-medium">
-          {format({ timeStyle: 'short' })}{' '}
-          <span className="font-normal text-muted-foreground">({labels.timeZoneNote})</span>
+          {time} <span className="font-normal text-muted-foreground">({labels.timeZoneNote})</span>
         </dd>
         <dt className="text-sm text-muted-foreground">{labels.service}</dt>
         <dd className="font-medium">
@@ -94,11 +85,20 @@ export async function AppointmentDetails({ locale, labels, params }: Appointment
           </>
         )}
       </dl>
+      {(actions.canConfirm || actions.canCancel || actions.tooLateToCancel) && (
+        <AppointmentActions
+          appointmentId={appointment.id}
+          actions={actions}
+          labels={labels}
+          date={date}
+          time={time}
+        />
+      )}
       <Link
-        href={`/${locale}/appointments/new`}
+        href={`/${locale}/appointments`}
         className={buttonVariants({ variant: 'secondary', className: 'self-start' })}
       >
-        {labels.bookAnother}
+        {labels.myAppointments}
       </Link>
     </div>
   )

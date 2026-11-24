@@ -13,6 +13,14 @@ export type Appointment = {
   doctor: { id: string; firstName: string; lastName: string; specialty: string }
 }
 
+// One page of GET /appointments
+export type AppointmentPage = {
+  appointments: Appointment[]
+  page: number
+  pageSize: number
+  total: number
+}
+
 // A free time to book: startsAt in UTC, time in the clinic's local time ("09:00")
 export type Slot = {
   startsAt: string

@@ -3,7 +3,7 @@ import { server } from '@mocks/node'
 import { http, HttpResponse } from 'msw/http'
 import { cookies, headers } from 'next/headers'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getAppointment, getAvailability } from './server'
+import { getAppointment, getAvailability, getMyAppointments } from './server'
 
 // next/headers only works inside a Next.js request: the session cookie is set by hand
 vi.mock('next/headers', () => ({ cookies: vi.fn(), headers: vi.fn() }))
@@ -59,5 +59,38 @@ describe('getAppointment', () => {
     server.use(http.get('*/appointments/:id', () => HttpResponse.error()))
 
     await expect(getAppointment(testAppointment.id)).rejects.toMatchObject({ status: 0 })
+  })
+})
+
+describe('getMyAppointments', () => {
+  const now = new Date('2026-11-24T18:00:00.000Z')
+  const asked = async (when: 'upcoming' | 'past', page?: number) => {
+    let url: URL | undefined
+    server.use(
+      http.get('http://localhost:3000/appointments', ({ request }) => {
+        url = new URL(request.url)
+        return HttpResponse.json({ appointments: [], page: 1, pageSize: 10, total: 0 })
+      }),
+    )
+    await getMyAppointments({ when, page, pageSize: 10, now })
+    return Object.fromEntries(url!.searchParams)
+  }
+
+  it('asks for the upcoming appointments from now on, the nearest first', async () => {
+    expect(await asked('upcoming')).toEqual({
+      from: now.toISOString(),
+      order: 'asc',
+      page: '1',
+      pageSize: '10',
+    })
+  })
+
+  it('asks for one page of the past appointments, the latest first', async () => {
+    expect(await asked('past', 3)).toEqual({
+      to: now.toISOString(),
+      order: 'desc',
+      page: '3',
+      pageSize: '10',
+    })
   })
 })

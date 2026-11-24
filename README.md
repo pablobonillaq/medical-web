@@ -8,7 +8,7 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phases 1 to 6 completed (base setup, design system, languages and app shell, data layer, authentication, public pages); Phase 7 (patient area) in progress: profile and booking done.
+> **Status:** in development. Phases 1 to 6 completed (base setup, design system, languages and app shell, data layer, authentication, public pages); Phase 7 (patient area) in progress: profile, booking and my appointments done.
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
@@ -104,7 +104,7 @@ npm run test:e2e         # builds the app, starts it on port 3001 and runs the t
 
 Playwright also starts a stand-in for the Express API on port 3000 (`scripts/fake-api.mjs`), so the tests need no database. It is always this stand-in, with its fictitious account, so port 3000 must be free (stop the real API first). If `npm run dev` is already running on port 3001, the tests use it instead of building. The HTML report stays in `playwright-report/` (`npx playwright show-report`).
 
-**Known issue:** the Firefox that Playwright installs crashes ("Page crashed") while axe checks the booking page, in step 3. It happened however the page was reached and with any set of axe rules, and could not be narrowed down further without a local Firefox and its crash dump. Until then, `e2e/booking.spec.ts` skips axe on that page in Firefox only; Chromium, WebKit and the mobile viewport check it in full, and `src/app/globals.test.ts` checks the contrast of every color pair.
+**Known issue:** the Firefox that Playwright installs crashes ("Page crashed") while axe checks two pages: the booking page, in step 3, and the My appointments list. It happened however the page was reached and with any set of axe rules, and could not be narrowed down further without a local Firefox and its crash dump. Until then, `e2e/booking.spec.ts` and `e2e/appointments.spec.ts` skip axe on those pages in Firefox only; Chromium, WebKit and the mobile viewport check them in full, and `src/app/globals.test.ts` checks the contrast of every color pair.
 
 ### Lighthouse
 
@@ -162,13 +162,15 @@ docs/
 e2e/                       # end-to-end and axe tests with Playwright
 mocks/                     # fake API for the tests (MSW)
 scripts/
-└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, auth, services, doctors, patient profile, availability and booking)
+└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, auth, services, doctors, patient profile, availability, booking, confirming and cancelling)
 src/
 ├── api/
 │   ├── client.ts          # fetch for /api: JSON in and out, errors as ApiError
 │   └── server.ts          # fetch for Server Components, with the visitor's session (never cached)
 ├── appointments/
-│   ├── server.ts          # getAvailability() and getAppointment(), read on the server
+│   ├── format.ts          # an appointment's date and time at the clinic, per language
+│   ├── rules.ts           # what a patient may do with an appointment now
+│   ├── server.ts          # getAvailability(), getAppointment() and getMyAppointments(), on the server
 │   └── types.ts           # Appointment, Slot and Availability
 ├── auth/
 │   ├── constants.ts       # the name of the session cookie
@@ -187,7 +189,7 @@ src/
 │   ├── globals.test.ts    # checks the WCAG contrast of every color pair, in both themes
 │   └── [lang]/            # every page, under /es or /en
 │       ├── [...rest]/     # any address that matches no page: a 404
-│       ├── appointments/  # booking (new/) and one appointment ([id]/), patients only
+│       ├── appointments/  # my appointments, booking (new/) and one appointment ([id]/), patients only
 │       ├── account/       # my account (protected)
 │       ├── forbidden.tsx  # 403 page, for a role that may not see a page
 │       ├── layout.tsx     # root layout: <html lang>, header, main region, footer, toasts
@@ -201,12 +203,15 @@ src/
 ├── components/
 │   ├── account-details.tsx # email and role of who is signed in, behind requireSession
 │   ├── account-area.tsx   # the header's account: who is signed in, streamed behind <Suspense>
-│   ├── account-menu.tsx   # email, role, links to the account (and profile and booking) and the sign-out button
+│   ├── account-menu.tsx   # email, role, links to the account (and profile and appointments) and the sign-out button
+│   ├── appointment-actions.tsx # confirm or cancel an appointment, with a dialog before cancelling
 │   ├── appointment-details.tsx # one appointment of the patient, in the clinic's time
+│   ├── appointment-status-badge.tsx # an appointment's status, in words and color
 │   ├── booking-steps.tsx  # booking step by step: service, doctor and date, time
 │   ├── inline-script.tsx  # script that runs before the first paint, without React's warning
 │   ├── language-switcher.tsx # links to the same page in each language
 │   ├── main-nav.tsx       # the public sections of the site, marking the current one
+│   ├── my-appointments.tsx # upcoming and past appointments, the history page by page
 │   ├── profile-details.tsx # the patient's profile, read on the server behind requireSession
 │   ├── profile-form.tsx   # changes the profile and the reminder preferences
 │   ├── login-form.tsx     # sign-in form: errors next to each field, announced failures
@@ -258,6 +263,7 @@ src/
 ├── store/
 │   ├── api-health-saga.ts # checks the API every minute, backs off on failures, pauses in hidden tabs
 │   ├── api-status-slice.ts # whether the API answers, with the checkApiHealth thunk
+│   ├── appointment-changes-slice.ts # confirming and cancelling, with their thunks
 │   ├── booking-slice.ts   # booking an appointment, with the bookAppointment thunk
 │   ├── hooks.ts           # typed useAppDispatch, useAppSelector and useAppStore
 │   ├── profile-slice.ts   # saving the profile, with the saveProfile thunk

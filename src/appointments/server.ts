@@ -1,6 +1,6 @@
 import { ApiError } from '@/api/client'
 import { serverApiRequest } from '@/api/server'
-import type { Appointment, Availability } from './types'
+import type { Appointment, AppointmentPage, Availability } from './types'
 
 type AvailabilityQuery = {
   doctorId: string
@@ -37,4 +37,29 @@ export async function getAppointment(id: string): Promise<Appointment | null> {
     if (error instanceof ApiError && [400, 404].includes(error.status)) return null
     throw error
   }
+}
+
+type MyAppointmentsQuery = {
+  // upcoming: from now on, the nearest first. past: before now, the latest first
+  when: 'upcoming' | 'past'
+  page?: number
+  pageSize: number
+  now: Date
+}
+
+// One page of the signed-in patient's appointments, read on the server with their session. The
+// API only answers with the patient's own, whatever the query says
+export async function getMyAppointments({
+  when,
+  page = 1,
+  pageSize,
+  now,
+}: MyAppointmentsQuery): Promise<AppointmentPage> {
+  const query = new URLSearchParams({
+    [when === 'upcoming' ? 'from' : 'to']: now.toISOString(),
+    order: when === 'upcoming' ? 'asc' : 'desc',
+    page: String(page),
+    pageSize: String(pageSize),
+  })
+  return serverApiRequest<AppointmentPage>(`/appointments?${query}`)
 }

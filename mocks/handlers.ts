@@ -33,6 +33,16 @@ export const handlers = [
   // by the browser
   http.get('*/availability', () => HttpResponse.json(testAvailability)),
   http.get('*/appointments/:id', () => HttpResponse.json({ appointment: testAppointment })),
+  // The patient's appointments, one page, and the changes the browser sends
+  http.get('*/appointments', () =>
+    HttpResponse.json({ appointments: [testAppointment], page: 1, pageSize: 10, total: 1 }),
+  ),
+  http.patch('*/api/appointments/:id/status', () =>
+    HttpResponse.json({ appointment: { ...testAppointment, status: 'confirmed' } }),
+  ),
+  http.patch('*/api/appointments/:id/cancel', () =>
+    HttpResponse.json({ appointment: { ...testAppointment, status: 'cancelled' } }),
+  ),
   http.post('*/api/appointments', () =>
     HttpResponse.json({ appointment: testAppointment }, { status: 201 }),
   ),

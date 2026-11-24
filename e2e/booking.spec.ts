@@ -44,7 +44,8 @@ test('the patient books an appointment step by step and sees it', async ({
 }, testInfo) => {
   const days = bookingDay(testInfo, 0)
   await newPatient(page)
-  await page.getByRole('banner').getByRole('link', { name: 'Agendar cita' }).click()
+  await page.getByRole('banner').getByRole('link', { name: 'Mis citas' }).click()
+  await page.getByRole('main').getByRole('link', { name: 'Agendar cita' }).click()
   await expect(page).toHaveURL('/es/appointments/new')
 
   // 1. The service

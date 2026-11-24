@@ -8,6 +8,7 @@ import { sessionExpirySlice } from './session-expiry-slice'
 import { sessionSlice } from './session-slice'
 import { profileSlice } from './profile-slice'
 import { bookingSlice } from './booking-slice'
+import { appointmentChangesSlice } from './appointment-changes-slice'
 
 // Each slice keeps its state under its own name: state.apiStatus, state.session
 const rootReducer = combineSlices(
@@ -16,6 +17,7 @@ const rootReducer = combineSlices(
   sessionExpirySlice,
   profileSlice,
   bookingSlice,
+  appointmentChangesSlice,
 )
 
 export type RootState = ReturnType<typeof rootReducer>

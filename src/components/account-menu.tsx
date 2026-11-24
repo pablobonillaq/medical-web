@@ -49,7 +49,7 @@ export function AccountMenu({ user, locale, labels }: AccountMenuProps) {
       >
         {labels.myAccount}
       </Link>
-      {/* The patient area: their profile and booking */}
+      {/* The patient area: their profile and their appointments, where they also book */}
       {user.role === 'patient' && (
         <>
           <Link
@@ -59,10 +59,10 @@ export function AccountMenu({ user, locale, labels }: AccountMenuProps) {
             {labels.myProfile}
           </Link>
           <Link
-            href={`/${locale}/appointments/new`}
+            href={`/${locale}/appointments`}
             className={buttonVariants({ variant: 'ghost', size: 'sm' })}
           >
-            {labels.bookAppointment}
+            {labels.myAppointments}
           </Link>
         </>
       )}

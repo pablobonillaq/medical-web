@@ -1,13 +1,20 @@
 import { testAppointment } from '@mocks/appointments'
 import { server } from '@mocks/node'
 import { fakeToken, testUsers } from '@mocks/session'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw/http'
 import { cookies, headers } from 'next/headers'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ToastProvider } from '@/components/ui/toast'
 import { en } from '@/i18n/dictionaries/en'
 import { es } from '@/i18n/dictionaries/es'
+import { StoreProvider } from '@/store/store-provider'
 import { AppointmentDetails, AppointmentDetailsFallback } from './appointment-details'
+
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  useRouter: () => ({ refresh: () => {} }),
+}))
 
 // Outside a Next.js request: the session and the language of the URL are set by hand
 vi.mock('next/headers', () => ({ cookies: vi.fn(), headers: vi.fn() }))
@@ -35,6 +42,14 @@ const details = (id = testAppointment.id, locale: 'es' | 'en' = 'es') =>
     params: Promise.resolve({ id }),
   })
 
+// Inside the store and the toasts, as on the page: the actions need them
+const renderDetails = async (...args: Parameters<typeof details>) =>
+  render(
+    <StoreProvider>
+      <ToastProvider>{await details(...args)}</ToastProvider>
+    </StoreProvider>,
+  )
+
 // Each term with its description, as a screen reader reads the list
 const terms = () =>
   Object.fromEntries(
@@ -45,7 +60,7 @@ const terms = () =>
 
 describe('AppointmentDetails', () => {
   it("shows the appointment in the patient's language and the clinic's time", async () => {
-    render(await details())
+    await renderDetails()
 
     expect(terms()).toEqual({
       Estado: 'Agendada',
@@ -54,9 +69,9 @@ describe('AppointmentDetails', () => {
       Servicio: 'Ultrasonido · 45 minutos',
       Médico: 'Luis Ruiz · Radiología',
     })
-    expect(screen.getByRole('link', { name: 'Agendar otra cita' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Ver mis citas' })).toHaveAttribute(
       'href',
-      '/es/appointments/new',
+      '/es/appointments',
     )
   })
 
@@ -69,11 +84,42 @@ describe('AppointmentDetails', () => {
       ),
     )
 
-    render(await details(testAppointment.id, 'en'))
+    await renderDetails(testAppointment.id, 'en')
 
     expect(terms()).toMatchObject({ Status: 'Confirmed', Time: '9:00 AM (Mexico City time)' })
     expect(screen.getByText('Dolor abdominal')).toBeInTheDocument()
     expect(screen.getByText('Ultrasonido')).toHaveAttribute('lang', 'es')
+  })
+
+  it('offers to confirm or cancel an upcoming appointment', async () => {
+    const tomorrow = new Date(Date.now() + 24 * 3_600_000).toISOString()
+    server.use(
+      http.get('*/appointments/:id', () =>
+        HttpResponse.json({ appointment: { ...testAppointment, startsAt: tomorrow } }),
+      ),
+    )
+
+    await renderDetails()
+
+    const actions = screen.getByRole('region', { name: 'Tu asistencia' })
+    expect(
+      within(actions).getByRole('button', { name: 'Confirmar asistencia' }),
+    ).toBeInTheDocument()
+    expect(within(actions).getByRole('button', { name: 'Cancelar cita' })).toBeInTheDocument()
+  })
+
+  it('offers nothing for a past appointment', async () => {
+    server.use(
+      http.get('*/appointments/:id', () =>
+        HttpResponse.json({
+          appointment: { ...testAppointment, startsAt: '2020-01-01T15:00:00.000Z' },
+        }),
+      ),
+    )
+
+    await renderDetails()
+
+    expect(screen.queryByRole('region', { name: 'Tu asistencia' })).not.toBeInTheDocument()
   })
 
   it("answers 404 to an appointment that is someone else's or does not exist", async () => {
@@ -87,7 +133,7 @@ describe('AppointmentDetails', () => {
   it('explains that the appointment could not be loaded when the API fails', async () => {
     server.use(http.get('*/appointments/:id', () => HttpResponse.error()))
 
-    render(await details())
+    await renderDetails()
 
     expect(screen.getByText('No pudimos cargar tu cita')).toBeInTheDocument()
   })
