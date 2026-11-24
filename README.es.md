@@ -8,7 +8,7 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 a 6 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación, páginas públicas); Fase 7 (área del paciente) en curso: perfil listo.
+> **Estado:** en desarrollo. Fases 1 a 6 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación, páginas públicas); Fase 7 (área del paciente) en curso: perfil y agenda de citas listos.
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
@@ -104,6 +104,8 @@ npm run test:e2e         # genera el build, lo inicia en el puerto 3001 y corre 
 
 Playwright también inicia un sustituto de la API de Express en el puerto 3000 (`scripts/fake-api.mjs`), así las pruebas no necesitan base de datos. Siempre es este sustituto, con su cuenta ficticia, así que el puerto 3000 debe estar libre (detén antes la API real). Si `npm run dev` ya está corriendo en el puerto 3001, las pruebas lo usan en lugar de generar el build. El reporte HTML queda en `playwright-report/` (`npx playwright show-report`).
 
+**Problema conocido:** el Firefox que instala Playwright se cae ("Page crashed") mientras axe revisa la página de agendar, en el paso 3. Ocurrió sin importar cómo se llegara a la página ni qué reglas de axe se usaran, y no se pudo acotar más sin un Firefox local y su volcado de error. Mientras tanto, `e2e/booking.spec.ts` omite axe en esa página solo en Firefox; Chromium, WebKit y la vista móvil la revisan completa, y `src/app/globals.test.ts` comprueba el contraste de cada par de colores.
+
 ### Lighthouse
 
 **Lighthouse CI** mide `/es`, `/en`, `/es/services` y `/es/doctors` sobre el build de producción, tres veces cada una, y falla si una puntuación baja del mínimo (`lighthouserc.json`): accesibilidad **100**, buenas prácticas 95, SEO 90 y rendimiento 90 (la ejecución mediana, con un perfil de celular con red y CPU limitadas). La página 404 queda fuera a propósito: Lighthouse baja el SEO de cualquier página que responde 404.
@@ -160,11 +162,14 @@ docs/
 e2e/                       # pruebas end-to-end y de axe con Playwright
 mocks/                     # API simulada para las pruebas (MSW)
 scripts/
-└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, autenticación, servicios, médicos, perfil del paciente)
+└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, autenticación, servicios, médicos, perfil del paciente, horarios y citas)
 src/
 ├── api/
 │   ├── client.ts          # fetch para /api: JSON de ida y vuelta, errores como ApiError
 │   └── server.ts          # fetch para Server Components, con la sesión del visitante (sin caché)
+├── appointments/
+│   ├── server.ts          # getAvailability() y getAppointment(), leídos en el servidor
+│   └── types.ts           # Appointment, Slot y Availability
 ├── auth/
 │   ├── constants.ts       # el nombre de la cookie de sesión
 │   ├── guard.ts           # requireSession(): sin sesión → iniciar sesión, otro rol → 403
@@ -181,6 +186,7 @@ src/
 │   ├── globals.css        # Tailwind y tokens de diseño (colores con light-dark())
 │   ├── globals.test.ts    # revisa el contraste WCAG de cada par de colores, en los dos temas
 │   └── [lang]/            # todas las páginas, bajo /es o /en
+│       ├── appointments/  # agendar (new/) y una cita ([id]/), solo pacientes
 │       ├── [...rest]/     # cualquier dirección que no sea una página: un 404
 │       ├── account/       # mi cuenta (protegida)
 │       ├── forbidden.tsx  # página 403, para un rol que no puede ver una página
@@ -195,7 +201,9 @@ src/
 ├── components/
 │   ├── account-details.tsx # correo y rol de quien inició sesión, detrás de requireSession
 │   ├── account-area.tsx   # la cuenta en el encabezado: quién inició sesión, detrás de <Suspense>
-│   ├── account-menu.tsx   # correo, rol, enlaces a la cuenta (y al perfil) y el botón para cerrar sesión
+│   ├── account-menu.tsx   # correo, rol, enlaces a la cuenta (y al perfil y a agendar) y el botón para cerrar sesión
+│   ├── appointment-details.tsx # una cita del paciente, en la hora de la clínica
+│   ├── booking-steps.tsx  # agendar paso a paso: servicio, médico y fecha, horario
 │   ├── inline-script.tsx  # script que corre antes del primer pintado, sin el aviso de React
 │   ├── language-switcher.tsx # enlaces a la misma página en cada idioma
 │   ├── main-nav.tsx       # las secciones públicas del sitio, marcando la actual
@@ -208,6 +216,7 @@ src/
 │   ├── site-footer.tsx    # pie de cada página
 │   ├── session-expiry-dialog.tsx # avisa antes de que venza la sesión, y cuando venció
 │   ├── session-watcher.tsx # le pasa al store cuándo vence la sesión
+│   ├── slot-picker-form.tsx # los horarios libres, las notas y la reserva
 │   ├── service-list.tsx   # los servicios en tarjetas, o un aviso si la API no responde
 │   ├── sign-in-link.tsx   # enlace para iniciar sesión que regresa a la página actual
 │   ├── site-header.tsx    # encabezado de cada página: enlace al inicio, cuenta, tema e idioma
@@ -230,6 +239,7 @@ src/
 │       ├── skip-link.tsx  # "saltar al contenido principal", la primera parada del teclado
 │       └── visually-hidden.tsx # texto solo para lectores de pantalla
 ├── config/
+│   ├── clinic.ts          # la zona horaria de la clínica, el plazo para agendar y su fecha de hoy
 │   ├── env.ts             # variables de entorno validadas con Zod
 │   └── rewrites.ts        # reenvía /api/* a la API de Express
 ├── i18n/
@@ -248,6 +258,7 @@ src/
 ├── store/
 │   ├── api-health-saga.ts # revisa la API cada minuto, espera más tras fallas, se pausa en pestañas ocultas
 │   ├── api-status-slice.ts # si la API responde, con el thunk checkApiHealth
+│   ├── booking-slice.ts   # agendar una cita, con el thunk bookAppointment
 │   ├── hooks.ts           # useAppDispatch, useAppSelector y useAppStore tipados
 │   ├── profile-slice.ts   # guardar el perfil, con el thunk saveProfile
 │   ├── session-expiry-saga.ts # cuenta regresiva al vencimiento: primero el aviso, luego el fin

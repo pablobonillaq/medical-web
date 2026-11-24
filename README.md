@@ -8,7 +8,7 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phases 1 to 6 completed (base setup, design system, languages and app shell, data layer, authentication, public pages); Phase 7 (patient area) in progress: profile done.
+> **Status:** in development. Phases 1 to 6 completed (base setup, design system, languages and app shell, data layer, authentication, public pages); Phase 7 (patient area) in progress: profile and booking done.
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
@@ -104,6 +104,8 @@ npm run test:e2e         # builds the app, starts it on port 3001 and runs the t
 
 Playwright also starts a stand-in for the Express API on port 3000 (`scripts/fake-api.mjs`), so the tests need no database. It is always this stand-in, with its fictitious account, so port 3000 must be free (stop the real API first). If `npm run dev` is already running on port 3001, the tests use it instead of building. The HTML report stays in `playwright-report/` (`npx playwright show-report`).
 
+**Known issue:** the Firefox that Playwright installs crashes ("Page crashed") while axe checks the booking page, in step 3. It happened however the page was reached and with any set of axe rules, and could not be narrowed down further without a local Firefox and its crash dump. Until then, `e2e/booking.spec.ts` skips axe on that page in Firefox only; Chromium, WebKit and the mobile viewport check it in full, and `src/app/globals.test.ts` checks the contrast of every color pair.
+
 ### Lighthouse
 
 **Lighthouse CI** measures `/es`, `/en`, `/es/services` and `/es/doctors` on the production build, three times each, and fails if a score drops below the minimum (`lighthouserc.json`): accessibility **100**, best practices 95, SEO 90 and performance 90 (the median run, on a throttled mobile profile). The 404 page is left out on purpose: Lighthouse lowers the SEO score of any page that answers 404.
@@ -160,11 +162,14 @@ docs/
 e2e/                       # end-to-end and axe tests with Playwright
 mocks/                     # fake API for the tests (MSW)
 scripts/
-└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, auth, services, doctors, patient profile)
+└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, auth, services, doctors, patient profile, availability and booking)
 src/
 ├── api/
 │   ├── client.ts          # fetch for /api: JSON in and out, errors as ApiError
 │   └── server.ts          # fetch for Server Components, with the visitor's session (never cached)
+├── appointments/
+│   ├── server.ts          # getAvailability() and getAppointment(), read on the server
+│   └── types.ts           # Appointment, Slot and Availability
 ├── auth/
 │   ├── constants.ts       # the name of the session cookie
 │   ├── guard.ts           # requireSession(): signed out → sign in, other role → 403
@@ -182,6 +187,7 @@ src/
 │   ├── globals.test.ts    # checks the WCAG contrast of every color pair, in both themes
 │   └── [lang]/            # every page, under /es or /en
 │       ├── [...rest]/     # any address that matches no page: a 404
+│       ├── appointments/  # booking (new/) and one appointment ([id]/), patients only
 │       ├── account/       # my account (protected)
 │       ├── forbidden.tsx  # 403 page, for a role that may not see a page
 │       ├── layout.tsx     # root layout: <html lang>, header, main region, footer, toasts
@@ -195,7 +201,9 @@ src/
 ├── components/
 │   ├── account-details.tsx # email and role of who is signed in, behind requireSession
 │   ├── account-area.tsx   # the header's account: who is signed in, streamed behind <Suspense>
-│   ├── account-menu.tsx   # email, role, links to the account (and profile) and the sign-out button
+│   ├── account-menu.tsx   # email, role, links to the account (and profile and booking) and the sign-out button
+│   ├── appointment-details.tsx # one appointment of the patient, in the clinic's time
+│   ├── booking-steps.tsx  # booking step by step: service, doctor and date, time
 │   ├── inline-script.tsx  # script that runs before the first paint, without React's warning
 │   ├── language-switcher.tsx # links to the same page in each language
 │   ├── main-nav.tsx       # the public sections of the site, marking the current one
@@ -208,6 +216,7 @@ src/
 │   ├── site-footer.tsx    # footer of every page
 │   ├── session-expiry-dialog.tsx # warns before the session ends, and says when it ended
 │   ├── session-watcher.tsx # hands the end of the session to the store
+│   ├── slot-picker-form.tsx # the free times, the notes and the booking
 │   ├── service-list.tsx   # the services as cards, or a warning if the API is down
 │   ├── sign-in-link.tsx   # link to sign in that comes back to the current page
 │   ├── site-header.tsx    # banner of every page: link home, account, theme and language
@@ -230,6 +239,7 @@ src/
 │       ├── skip-link.tsx  # "skip to main content", the first stop of the keyboard
 │       └── visually-hidden.tsx # text only for screen readers
 ├── config/
+│   ├── clinic.ts          # the clinic's time zone and booking window, its date today
 │   ├── env.ts             # environment variables validated with Zod
 │   └── rewrites.ts        # forwards /api/* to the Express API
 ├── i18n/
@@ -248,6 +258,7 @@ src/
 ├── store/
 │   ├── api-health-saga.ts # checks the API every minute, backs off on failures, pauses in hidden tabs
 │   ├── api-status-slice.ts # whether the API answers, with the checkApiHealth thunk
+│   ├── booking-slice.ts   # booking an appointment, with the bookAppointment thunk
 │   ├── hooks.ts           # typed useAppDispatch, useAppSelector and useAppStore
 │   ├── profile-slice.ts   # saving the profile, with the saveProfile thunk
 │   ├── session-expiry-saga.ts # counts down to the end of the session: warning, then end

@@ -52,6 +52,53 @@ const doctors = [
   doctor(3, 'Luis', 'Ruiz', 'Radiología', '7654321', [4]),
 ]
 
+// Appointments, by id, with the account of the patient who booked them. In memory only
+const appointments = new Map()
+
+// The clinic is in Mexico City: UTC-6 all year. Every doctor works from 9:00 to 13:00, with a
+// possible start every 15 minutes, as in the real API
+const CLINIC_OFFSET_HOURS = 6
+const clinicToday = () =>
+  new Date(Date.now() - CLINIC_OFFSET_HOURS * 3_600_000).toISOString().slice(0, 10)
+const daysBetween = (from, to) => (Date.parse(to) - Date.parse(from)) / 86_400_000
+
+// The free times of a doctor for a service on a date, or the reason the API would give for none
+const freeSlots = (doctorId, serviceId, date) => {
+  const doctor = doctors.find(({ id }) => id === doctorId)
+  if (!doctor) return { status: 404, body: { error: 'Doctor not found' } }
+  const service = doctor.services.find(({ id }) => id === serviceId)
+  if (!service) return { status: 400, body: { error: 'The doctor does not offer this service' } }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? '')) {
+    return { status: 400, body: { error: 'date must use the YYYY-MM-DD format' } }
+  }
+  const daysAhead = daysBetween(clinicToday(), date)
+  if (daysAhead < 0) return { status: 400, body: { error: 'date cannot be in the past' } }
+  if (daysAhead > 90) return { status: 400, body: { error: 'date can be at most 90 days ahead' } }
+
+  const taken = [...appointments.values()]
+    .filter(({ appointment }) => appointment.doctor.id === doctorId)
+    .map(({ appointment }) => appointment.startsAt)
+  const slots = []
+  for (let minute = 9 * 60; minute + service.durationMinutes <= 13 * 60; minute += 15) {
+    const startsAt = new Date(
+      Date.parse(`${date}T00:00:00.000Z`) + (minute + CLINIC_OFFSET_HOURS * 60) * 60_000,
+    )
+    const endsAt = new Date(startsAt.getTime() + service.durationMinutes * 60_000)
+    if (startsAt.getTime() <= Date.now() || taken.includes(startsAt.toISOString())) continue
+    const time = `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`
+    slots.push({ startsAt: startsAt.toISOString(), endsAt: endsAt.toISOString(), time })
+  }
+  return {
+    status: 200,
+    body: {
+      date,
+      timeZone: 'America/Mexico_City',
+      durationMinutes: service.durationMinutes,
+      slots,
+    },
+  }
+}
+
 // The accounts, by email. Patients who sign up in the tests are added here, in memory only
 const accounts = new Map([[patient.email, { user: patient, password: PASSWORD }]])
 
@@ -167,6 +214,45 @@ const routes = {
     return { status: 200, body: { patient: profiles.get(user.id) } }
   },
 
+  'GET /availability': (request) => {
+    if (!sessionUser(request)) return { status: 401, body: { error: 'Authentication required' } }
+    const query = new URL(request.url, 'http://localhost').searchParams
+    return freeSlots(query.get('doctorId'), query.get('serviceId'), query.get('date'))
+  },
+
+  // Patients book for themselves, only one of the free times
+  'POST /appointments': async (request) => {
+    const user = sessionUser(request)
+    if (!user) return { status: 401, body: { error: 'Authentication required' } }
+    const { doctorId, serviceId, startsAt, notes } = await readJson(request)
+    const date = new Date(Date.parse(startsAt) - CLINIC_OFFSET_HOURS * 3_600_000)
+      .toISOString()
+      .slice(0, 10)
+    const free = freeSlots(doctorId, serviceId, date)
+    if (free.status !== 200) return free
+    const slot = free.body.slots.find((candidate) => candidate.startsAt === startsAt)
+    if (!slot) return { status: 409, body: { error: 'The requested time is not available' } }
+
+    const doctor = doctors.find(({ id }) => id === doctorId)
+    const service = doctor.services.find(({ id }) => id === serviceId)
+    const appointment = {
+      id: randomUUID(),
+      status: 'scheduled',
+      startsAt: slot.startsAt,
+      endsAt: slot.endsAt,
+      notes: notes ?? null,
+      service,
+      doctor: {
+        id: doctor.id,
+        firstName: doctor.firstName,
+        lastName: doctor.lastName,
+        specialty: doctor.specialty,
+      },
+    }
+    appointments.set(appointment.id, { appointment, userId: user.id })
+    return { status: 201, body: { appointment } }
+  },
+
   'GET /auth/me': (request) => {
     const user = sessionUser(request)
     return user
@@ -177,6 +263,19 @@ const routes = {
 
 // Routes with an id in the path: the handler gets it after the request
 const routesWithId = [
+  {
+    method: 'GET',
+    path: /^\/appointments\/([^/]+)$/,
+    // Only the patient's own appointments; anyone else's is a 404, as in the real API
+    handler: (request, id) => {
+      const user = sessionUser(request)
+      if (!user) return { status: 401, body: { error: 'Authentication required' } }
+      const booked = appointments.get(id)
+      if (booked?.userId !== user.id)
+        return { status: 404, body: { error: 'Appointment not found' } }
+      return { status: 200, body: { appointment: booked.appointment } }
+    },
+  },
   {
     method: 'PATCH',
     path: /^\/patients\/([^/]+)$/,

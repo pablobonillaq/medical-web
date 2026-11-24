@@ -36,3 +36,27 @@ export const signIn = async (page: Page, email = PATIENT.email, password = PATIE
   await page.getByLabel('Contraseña').fill(password)
   await page.getByRole('button', { name: 'Iniciar sesión' }).click()
 }
+
+// A patient of its own for each test, signed in: the tests of every browser run at once against
+// the same fake API, and must not change each other's data
+export const newPatient = async (page: Page) => {
+  const email = `luz.${Date.now()}.${Math.floor(Math.random() * 1e6)}@test.com`
+  const response = await page.request.post('/api/auth/register', {
+    data: {
+      email,
+      password: '12345678',
+      firstName: 'Luz',
+      lastName: 'Méndez',
+      birthDate: '1990-05-21',
+      phone: '5512345678',
+      emailRemindersOptIn: true,
+      whatsappOptIn: false,
+    },
+  })
+  expect(response.status()).toBe(201)
+  // Without ?next= the sign-in page goes home; the account page shows the session has started
+  await page.goto('/es/login?next=%2Fes%2Faccount')
+  await signIn(page, email)
+  await expect(page).toHaveURL('/es/account')
+  return email
+}

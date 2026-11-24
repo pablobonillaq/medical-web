@@ -1,28 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
-import { expectNoAccessibilityViolations, signIn } from './helpers'
-
-// A patient of its own for each test, so the tests of every browser can change a profile at once
-const newPatient = async (page: Page) => {
-  const email = `luz.${Date.now()}.${Math.floor(Math.random() * 1e6)}@test.com`
-  const response = await page.request.post('/api/auth/register', {
-    data: {
-      email,
-      password: '12345678',
-      firstName: 'Luz',
-      lastName: 'Méndez',
-      birthDate: '1990-05-21',
-      phone: '5512345678',
-      emailRemindersOptIn: true,
-      whatsappOptIn: false,
-    },
-  })
-  expect(response.status()).toBe(201)
-  // Without ?next= the sign-in page goes home; the account page shows the session has started
-  await page.goto('/es/login?next=%2Fes%2Faccount')
-  await signIn(page, email)
-  await expect(page).toHaveURL('/es/account')
-  return email
-}
+import { expect, test } from '@playwright/test'
+import { expectNoAccessibilityViolations, newPatient } from './helpers'
 
 test('a visitor without a session goes to sign in first', async ({ page }) => {
   await page.goto('/es/profile')

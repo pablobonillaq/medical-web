@@ -49,13 +49,22 @@ export function AccountMenu({ user, locale, labels }: AccountMenuProps) {
       >
         {labels.myAccount}
       </Link>
+      {/* The patient area: their profile and booking */}
       {user.role === 'patient' && (
-        <Link
-          href={`/${locale}/profile`}
-          className={buttonVariants({ variant: 'ghost', size: 'sm' })}
-        >
-          {labels.myProfile}
-        </Link>
+        <>
+          <Link
+            href={`/${locale}/profile`}
+            className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+          >
+            {labels.myProfile}
+          </Link>
+          <Link
+            href={`/${locale}/appointments/new`}
+            className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+          >
+            {labels.bookAppointment}
+          </Link>
+        </>
       )}
       <Button
         variant="secondary"

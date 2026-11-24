@@ -50,16 +50,21 @@ describe('AccountMenu', () => {
     expect(screen.getByRole('link', { name: 'Mi cuenta' })).toHaveAttribute('href', '/es/account')
   })
 
-  it('links patients to their profile too', () => {
+  it('links patients to their profile and to booking too', () => {
     renderMenu(es.account, 'es', testUsers.patient)
 
     expect(screen.getByRole('link', { name: 'Mi perfil' })).toHaveAttribute('href', '/es/profile')
+    expect(screen.getByRole('link', { name: 'Agendar cita' })).toHaveAttribute(
+      'href',
+      '/es/appointments/new',
+    )
   })
 
-  it('has no profile link for the staff', () => {
+  it('has no patient links for the staff', () => {
     renderMenu()
 
     expect(screen.queryByRole('link', { name: 'Mi perfil' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Agendar cita' })).not.toBeInTheDocument()
   })
 
   it('signs out and goes to the home page', async () => {

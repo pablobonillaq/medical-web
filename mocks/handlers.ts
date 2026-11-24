@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw/http'
 import { testDoctors, testServices } from './catalog'
 import { testProfile } from './patients'
+import { testAppointment, testAvailability } from './appointments'
 
 // The default answers of the fake API, shaped like the real Express API. A test that needs
 // another answer replaces one with server.use(...) for that test only.
@@ -27,5 +28,12 @@ export const handlers = [
         updatedAt: new Date().toISOString(),
       },
     }),
+  ),
+  // Booking: the free times and one appointment, read on the server; the booking itself is sent
+  // by the browser
+  http.get('*/availability', () => HttpResponse.json(testAvailability)),
+  http.get('*/appointments/:id', () => HttpResponse.json({ appointment: testAppointment })),
+  http.post('*/api/appointments', () =>
+    HttpResponse.json({ appointment: testAppointment }, { status: 201 }),
   ),
 ]
