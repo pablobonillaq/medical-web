@@ -10,6 +10,8 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  # deploy-pages finds the uploaded site through the Actions artifacts API
+  actions: read
 
 # One deployment at a time; a newer push waits instead of cancelling the one in progress
 concurrency:
