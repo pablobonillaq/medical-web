@@ -52,6 +52,35 @@ const doctors = [
   doctor(3, 'Luis', 'Ruiz', 'Radiología', '7654321', [4]),
 ]
 
+// The accesses to the fictitious patient's record, the latest first. Staff names are shown only
+// for doctors, as in the real API
+const accessLog = [
+  {
+    id: '0190a7b2-5555-7000-8000-000000000003',
+    action: 'create',
+    resource: 'clinical_note',
+    resourceId: '0190a7b2-6666-7000-8000-000000000001',
+    createdAt: '2026-11-20T16:20:00.000Z',
+    actor: { role: 'doctor', name: 'Ana Garay' },
+  },
+  {
+    id: '0190a7b2-5555-7000-8000-000000000002',
+    action: 'read',
+    resource: 'medical_history',
+    resourceId: null,
+    createdAt: '2026-11-20T16:05:00.000Z',
+    actor: { role: 'doctor', name: 'Ana Garay' },
+  },
+  {
+    id: '0190a7b2-5555-7000-8000-000000000001',
+    action: 'denied',
+    resource: 'clinical_note',
+    resourceId: '0190a7b2-6666-7000-8000-000000000001',
+    createdAt: '2026-11-19T21:30:00.000Z',
+    actor: { role: 'employee', name: null },
+  },
+]
+
 // Appointments, by id, with the account of the patient who booked them. In memory only
 const appointments = new Map()
 
@@ -214,6 +243,27 @@ const routes = {
     if (!user) return { status: 401, body: { error: 'Authentication required' } }
     if (user.role !== 'patient') return { status: 403, body: { error: 'Forbidden' } }
     return { status: 200, body: { patient: profiles.get(user.id) } }
+  },
+
+  // Who opened the record: a few accesses for the fictitious account, none for the patients
+  // the tests sign up. The latest first, paginated as in the real API
+  'GET /patients/me/access-log': (request) => {
+    const user = sessionUser(request)
+    if (!user) return { status: 401, body: { error: 'Authentication required' } }
+    if (user.role !== 'patient') return { status: 403, body: { error: 'Forbidden' } }
+    const query = new URL(request.url, 'http://localhost').searchParams
+    const page = Number(query.get('page') ?? 1)
+    const pageSize = Number(query.get('pageSize') ?? 20)
+    const entries = user.id === patient.id ? accessLog : []
+    return {
+      status: 200,
+      body: {
+        entries: entries.slice((page - 1) * pageSize, page * pageSize),
+        page,
+        pageSize,
+        total: entries.length,
+      },
+    }
   },
 
   'GET /availability': (request) => {
@@ -420,7 +470,7 @@ const findRoute = (method, pathname) => {
   return undefined
 }
 
-createServer(async (request, response) => {
+const server = createServer(async (request, response) => {
   const { pathname } = new URL(request.url ?? '/', 'http://localhost')
   const route = findRoute(request.method, pathname)
   const {
@@ -432,6 +482,14 @@ createServer(async (request, response) => {
   response.writeHead(status, { 'Content-Type': 'application/json', ...headers })
   // 204 No Content has no body
   response.end(body === undefined ? undefined : JSON.stringify(body))
-}).listen(PORT, () => {
+})
+
+// Next.js forwards /api/* through a pool of open connections. Node closes an idle connection
+// after 5 seconds, so under load the proxy could reuse one just as it closed ("read
+// ECONNRESET" and a failed request). Keeping them open longer than the proxy does avoids it
+server.keepAliveTimeout = 65_000
+server.headersTimeout = 66_000
+
+server.listen(PORT, () => {
   console.log(`Fake API ready on http://localhost:${PORT}`)
 })

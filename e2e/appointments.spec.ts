@@ -41,10 +41,7 @@ test('a visitor without a session goes to sign in first', async ({ page }) => {
   await expect(page).toHaveURL('/es/login?next=%2Fes%2Fappointments')
 })
 
-test('the patient sees their upcoming appointment and opens it', async ({
-  page,
-  browserName,
-}, testInfo) => {
+test('the patient sees their upcoming appointment and opens it', async ({ page }, testInfo) => {
   await newPatient(page)
   await bookAppointment(page, appointmentDay(testInfo, 0))
 
@@ -59,8 +56,7 @@ test('the patient sees their upcoming appointment and opens it', async ({
       .getByRole('region', { name: 'Anteriores' })
       .getByText('Todavía no tienes citas anteriores.'),
   ).toBeVisible()
-  // Playwright's Firefox crashes while axe checks this page (see the README)
-  if (browserName !== 'firefox') await expectNoAccessibilityViolations(page)
+  await expectNoAccessibilityViolations(page)
 
   await upcoming.getByRole('link').click()
   await expect(page).toHaveURL(/\/es\/appointments\/[0-9a-f-]{36}$/)
@@ -124,8 +120,7 @@ test('the patient moves an appointment to another time of the same day', async (
   // The times of the appointment's own day show from the start, without its current time
   const times = page.getByRole('region', { name: '2. Nuevo horario' })
   await expect(times.getByRole('button', { name: 'Cambiar a este horario' })).toBeEnabled()
-  // Firefox crashes while axe checks pages with these times, as when booking (see the README)
-  if (browserName !== 'firefox') await expectNoAccessibilityViolations(page)
+  await expectNoAccessibilityViolations(page)
   const newTime = times.locator('label').first()
   const chosen = (await newTime.textContent())!
   await newTime.click()

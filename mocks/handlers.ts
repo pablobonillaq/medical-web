@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw/http'
 import { testDoctors, testServices } from './catalog'
-import { testProfile } from './patients'
+import { testAccessLog, testProfile } from './patients'
 import { testAppointment, testAvailability } from './appointments'
 
 // The default answers of the fake API, shaped like the real Express API. A test that needs
@@ -23,6 +23,7 @@ export const handlers = [
   http.get('*/doctors', () => HttpResponse.json({ doctors: testDoctors })),
   // The signed-in patient's profile, read on the server, and the change the browser sends
   http.get('*/patients/me', () => HttpResponse.json({ patient: testProfile })),
+  http.get('*/patients/me/access-log', () => HttpResponse.json(testAccessLog)),
   http.patch('*/api/patients/:id', async ({ request }) =>
     HttpResponse.json({
       patient: {

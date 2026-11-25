@@ -12,6 +12,7 @@ import { VisuallyHidden } from '@/components/ui/visually-hidden'
 import type { Locale } from '@/i18n/config'
 import type { Dictionary } from '@/i18n/dictionaries/es'
 import { AppointmentStatusBadge } from './appointment-status-badge'
+import { Pagination, pageParam } from './pagination'
 
 type MyAppointmentsProps = {
   locale: Locale
@@ -34,9 +35,7 @@ export async function MyAppointments({
   searchParams,
 }: MyAppointmentsProps) {
   await requireSession({ path: '/appointments', roles: ['patient'] })
-  const { page } = await searchParams
-  // A page that is not a whole number from 1 on is the first page
-  const pastPage = typeof page === 'string' && /^[1-9]\d*$/.test(page) ? Number(page) : 1
+  const pastPage = pageParam((await searchParams).page)
 
   const now = new Date()
   let upcoming: AppointmentPage
@@ -53,10 +52,6 @@ export async function MyAppointments({
       </Alert>
     )
   }
-
-  const pages = Math.max(1, Math.ceil(past.total / PAST_PAGE_SIZE))
-  const pastHref = (to: number) => `/${locale}/appointments${to === 1 ? '' : `?page=${to}`}`
-  const pageLink = buttonVariants({ variant: 'secondary', size: 'sm' })
 
   return (
     <div className="flex flex-col gap-10">
@@ -91,23 +86,16 @@ export async function MyAppointments({
         ) : (
           <AppointmentList appointments={past.appointments} locale={locale} statuses={statuses} />
         )}
-        {pages > 1 && (
-          <nav aria-label={labels.pagination} className="flex flex-wrap items-center gap-3">
-            {pastPage > 1 && (
-              <Link href={pastHref(pastPage - 1)} className={pageLink}>
-                {labels.newer}
-              </Link>
-            )}
-            <p className="text-sm text-muted-foreground">
-              {labels.pageOf.replace('{page}', String(pastPage)).replace('{pages}', String(pages))}
-            </p>
-            {pastPage < pages && (
-              <Link href={pastHref(pastPage + 1)} className={pageLink}>
-                {labels.older}
-              </Link>
-            )}
-          </nav>
-        )}
+        <Pagination
+          path={`/${locale}/appointments`}
+          label={labels.pagination}
+          page={pastPage}
+          pageSize={PAST_PAGE_SIZE}
+          total={past.total}
+          previous={labels.newer}
+          next={labels.older}
+          pageOf={labels.pageOf}
+        />
       </section>
     </div>
   )

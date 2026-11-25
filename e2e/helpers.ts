@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page } from '@playwright/test'
+import { SESSION_COOKIE } from '../src/auth/constants'
 import { THEME_STORAGE_KEY, type ThemePreference } from '../src/theme/theme'
 
 // Saves the theme before the page loads, as a visitor who chose it on an earlier visit
@@ -13,8 +14,14 @@ export const saveTheme = async (page: Page, theme: ThemePreference) => {
 }
 
 // The WCAG 2.2 A and AA rules of axe. Problems are listed by rule and element, so a failure
-// says what to fix
+// says what to fix. The Firefox that Playwright installs crashes ("Page crashed") while axe
+// checks pages with a session, on different pages from run to run (see the README): there, axe
+// runs in the other browsers only. Pages without a session are checked in Firefox too
 export const expectNoAccessibilityViolations = async (page: Page) => {
+  const browser = page.context().browser()?.browserType().name()
+  const cookies = await page.context().cookies()
+  if (browser === 'firefox' && cookies.some(({ name }) => name === SESSION_COOKIE)) return
+
   const { violations } = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
     .analyze()

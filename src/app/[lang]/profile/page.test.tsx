@@ -21,6 +21,17 @@ describe('ProfilePage', () => {
     expect(container.querySelector('[aria-busy="true"]')?.textContent).toBe('Loading your profile…')
   })
 
+  it('links to who opened the record', async () => {
+    vi.mocked(lang).mockResolvedValue('es')
+    const container = document.createElement('div')
+
+    container.innerHTML = renderToStaticMarkup(await ProfilePage())
+
+    const link = container.querySelector('a[href="/es/profile/access-log"]')
+    expect(link?.textContent).toBe('Ver quién consultó mi expediente')
+    expect(link?.closest('section')?.querySelector('h2')?.textContent).toBe('Privacidad')
+  })
+
   it('names the page', async () => {
     vi.mocked(lang).mockResolvedValue('es')
 

@@ -8,7 +8,7 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phases 1 to 6 completed (base setup, design system, languages and app shell, data layer, authentication, public pages); Phase 7 (patient area) in progress: profile, booking, my appointments and rescheduling done.
+> **Status:** in development. Phases 1 to 7 completed (base setup, design system, languages and app shell, data layer, authentication, public pages, patient area).
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
@@ -18,7 +18,7 @@ Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appo
 - [x] Spanish and English (`/es`, `/en`), with the language chosen from the browser or the last visit
 - [x] Sign in, patient sign-up and sign-out; routes protected by role on the server; a warning before the session ends
 - [x] Public pages: home, services and doctors, read from the API and cached for every visitor
-- [ ] Patients: book, cancel, reschedule and confirm appointments; see who opened their record
+- [x] Patients: book, cancel, reschedule and confirm appointments; see who opened their record
 - [ ] Front desk: patient search, walk-in patients, booking for a patient, daily agenda
 - [ ] Doctors: agenda, weekly schedule and time off, attendance
 - [ ] Medical records: history, SOAP notes with amendments, files
@@ -104,7 +104,7 @@ npm run test:e2e         # builds the app, starts it on port 3001 and runs the t
 
 Playwright also starts a stand-in for the Express API on port 3000 (`scripts/fake-api.mjs`), so the tests need no database. It is always this stand-in, with its fictitious account, so port 3000 must be free (stop the real API first). If `npm run dev` is already running on port 3001, the tests use it instead of building. The HTML report stays in `playwright-report/` (`npx playwright show-report`).
 
-**Known issue:** the Firefox that Playwright installs crashes ("Page crashed") while axe checks three pages: the booking page, in step 3, the My appointments list and the page to change an appointment's date or time. It happened however the page was reached and with any set of axe rules, and could not be narrowed down further without a local Firefox and its crash dump. Until then, `e2e/booking.spec.ts` and `e2e/appointments.spec.ts` skip axe on those pages in Firefox only; Chromium, WebKit and the mobile viewport check them in full, and `src/app/globals.test.ts` checks the contrast of every color pair.
+**Known issue:** the Firefox that Playwright installs crashes ("Page crashed") while axe checks pages with a session: first the booking page, then My appointments, the change of date or time and the profile, a different one from run to run. It happened however the page was reached and with any set of axe rules, and could not be narrowed down further without a local Firefox and its crash dump. Until then, `expectNoAccessibilityViolations` (`e2e/helpers.ts`) skips axe in Firefox on pages with a session; pages without one are checked in Firefox too, and Chromium, WebKit and the mobile viewport check every page. `src/app/globals.test.ts` checks the contrast of every color pair.
 
 ### Lighthouse
 
@@ -162,7 +162,7 @@ docs/
 e2e/                       # end-to-end and axe tests with Playwright
 mocks/                     # fake API for the tests (MSW)
 scripts/
-└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, auth, services, doctors, patient profile, availability, booking, confirming, cancelling and rescheduling)
+└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, auth, services, doctors, patient profile, availability, booking, confirming, cancelling, rescheduling and the access log)
 src/
 ├── api/
 │   ├── client.ts          # fetch for /api: JSON in and out, errors as ApiError
@@ -194,13 +194,14 @@ src/
 │       ├── forbidden.tsx  # 403 page, for a role that may not see a page
 │       ├── layout.tsx     # root layout: <html lang>, header, main region, footer, toasts
 │       ├── login/         # sign-in page
-│       ├── profile/       # the patient's profile (patients only)
+│       ├── profile/       # the patient's profile and who opened their record (access-log/), patients only
 │       ├── register/      # patient sign-up page
 │       ├── doctors/       # the clinic's doctors, filtered by service (public)
 │       ├── services/      # the clinic's services (public)
 │       ├── not-found.tsx  # 404 page, inside the layout and in the language of the URL
 │       └── page.tsx       # home page
 ├── components/
+│   ├── access-log.tsx     # who of the staff opened the patient's record, page by page
 │   ├── account-details.tsx # email and role of who is signed in, behind requireSession
 │   ├── account-area.tsx   # the header's account: who is signed in, streamed behind <Suspense>
 │   ├── account-menu.tsx   # email, role, links to the account (and profile and appointments) and the sign-out button
@@ -212,6 +213,7 @@ src/
 │   ├── language-switcher.tsx # links to the same page in each language
 │   ├── main-nav.tsx       # the public sections of the site, marking the current one
 │   ├── my-appointments.tsx # upcoming and past appointments, the history page by page
+│   ├── pagination.tsx     # links to the page before and after, in the URL
 │   ├── profile-details.tsx # the patient's profile, read on the server behind requireSession
 │   ├── profile-form.tsx   # changes the profile and the reminder preferences
 │   ├── login-form.tsx     # sign-in form: errors next to each field, announced failures
@@ -260,6 +262,7 @@ src/
 │   ├── use-focus-first-invalid.ts # moves the focus to the first field with an error
 │   └── use-hydrated.ts    # whether React has hydrated the page yet
 ├── patients/
+│   ├── access-log.ts      # getMyAccessLog(): who opened the patient's record, read on the server
 │   ├── profile.ts         # getMyProfile(): the patient's own profile, read on the server
 │   ├── profile-schema.ts  # the API's rules for a profile change, checked before sending
 │   └── types.ts           # Patient
@@ -307,7 +310,7 @@ vitest.config.mts          # unit tests and the 100% coverage threshold
 4. ~~Data layer: Redux Toolkit store, API client, thunks, sagas and MSW~~ ✅
 5. ~~Authentication: sign in, sign-up, sign-out, protected routes by role, session expiry~~ ✅ (the navigation by role grows with each area)
 6. ~~Public pages: home, services and doctors~~ ✅
-7. Patient area: profile, booking, my appointments, access log
+7. ~~Patient area: profile, booking, my appointments, access log~~ ✅
 8. Front desk: patient search, walk-in patients, booking for a patient, daily agenda
 9. Doctor area: agenda, schedule and time off, attendance
 10. Medical records: history, clinical notes, files

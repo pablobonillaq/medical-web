@@ -8,17 +8,17 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 a 6 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación, páginas públicas); Fase 7 (área del paciente) en curso: perfil, agendar citas, mis citas y cambiar fecha u hora listos.
+> **Estado:** en desarrollo. Fases 1 a 7 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación, páginas públicas, área del paciente).
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
 
 - [x] Tema claro, oscuro o el del sistema, sin parpadeo al cargar
-- [ ] Librería de componentes con variantes tipadas, documentada en Storybook
+- [x] Librería de componentes con variantes tipadas, documentada en Storybook
 - [x] Español e inglés (`/es`, `/en`), con el idioma elegido según el navegador o la última visita
 - [x] Inicio de sesión, registro de pacientes y cierre de sesión; rutas protegidas por rol desde el servidor; aviso antes de que venza la sesión
 - [x] Páginas públicas: inicio, servicios y médicos, leídos de la API y en caché para todos
-- [ ] Pacientes: reservar, cancelar, reprogramar y confirmar citas; ver quién abrió su expediente
+- [x] Pacientes: reservar, cancelar, reprogramar y confirmar citas; ver quién abrió su expediente
 - [ ] Recepción: búsqueda de pacientes, pacientes sin cuenta, reservas para un paciente, agenda del día
 - [ ] Médicos: agenda, horario semanal y días libres, asistencia
 - [ ] Expediente clínico: antecedentes, notas SOAP con correcciones, archivos
@@ -104,7 +104,7 @@ npm run test:e2e         # genera el build, lo inicia en el puerto 3001 y corre 
 
 Playwright también inicia un sustituto de la API de Express en el puerto 3000 (`scripts/fake-api.mjs`), así las pruebas no necesitan base de datos. Siempre es este sustituto, con su cuenta ficticia, así que el puerto 3000 debe estar libre (detén antes la API real). Si `npm run dev` ya está corriendo en el puerto 3001, las pruebas lo usan en lugar de generar el build. El reporte HTML queda en `playwright-report/` (`npx playwright show-report`).
 
-**Problema conocido:** el Firefox que instala Playwright se cae ("Page crashed") mientras axe revisa tres páginas: la de agendar, en el paso 3, la lista de Mis citas y la de cambiar la fecha u hora de una cita. Ocurrió sin importar cómo se llegara a la página ni qué reglas de axe se usaran, y no se pudo acotar más sin un Firefox local y su volcado de error. Mientras tanto, `e2e/booking.spec.ts` y `e2e/appointments.spec.ts` omiten axe en esas páginas solo en Firefox; Chromium, WebKit y la vista móvil las revisan completas, y `src/app/globals.test.ts` comprueba el contraste de cada par de colores.
+**Problema conocido:** el Firefox que instala Playwright se cae ("Page crashed") mientras axe revisa páginas con sesión: primero la de agendar, luego Mis citas, la de cambiar fecha u hora y el perfil, una distinta en cada corrida. Ocurrió sin importar cómo se llegara a la página ni qué reglas de axe se usaran, y no se pudo acotar más sin un Firefox local y su volcado de error. Mientras tanto, `expectNoAccessibilityViolations` (`e2e/helpers.ts`) omite axe en Firefox en las páginas con sesión; las páginas sin sesión sí se revisan en Firefox, y Chromium, WebKit y la vista móvil revisan todas. `src/app/globals.test.ts` comprueba el contraste de cada par de colores.
 
 ### Lighthouse
 
@@ -162,7 +162,7 @@ docs/
 e2e/                       # pruebas end-to-end y de axe con Playwright
 mocks/                     # API simulada para las pruebas (MSW)
 scripts/
-└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, autenticación, servicios, médicos, perfil del paciente, horarios, citas, confirmar, cancelar y cambiar de horario)
+└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, autenticación, servicios, médicos, perfil del paciente, horarios, citas, confirmar, cancelar, cambiar de horario y registro de accesos)
 src/
 ├── api/
 │   ├── client.ts          # fetch para /api: JSON de ida y vuelta, errores como ApiError
@@ -194,13 +194,14 @@ src/
 │       ├── forbidden.tsx  # página 403, para un rol que no puede ver una página
 │       ├── layout.tsx     # layout raíz: <html lang>, encabezado, región principal, pie, avisos
 │       ├── login/         # página de inicio de sesión
-│       ├── profile/       # el perfil del paciente (solo pacientes)
+│       ├── profile/       # el perfil del paciente y quién abrió su expediente (access-log/), solo pacientes
 │       ├── register/      # página de registro de pacientes
 │       ├── doctors/       # los médicos de la clínica, con filtro por servicio (pública)
 │       ├── services/      # los servicios de la clínica (pública)
 │       ├── not-found.tsx  # página 404, dentro del layout y en el idioma de la URL
 │       └── page.tsx       # página de inicio
 ├── components/
+│   ├── access-log.tsx     # quién del personal abrió el expediente del paciente, por páginas
 │   ├── account-details.tsx # correo y rol de quien inició sesión, detrás de requireSession
 │   ├── account-area.tsx   # la cuenta en el encabezado: quién inició sesión, detrás de <Suspense>
 │   ├── account-menu.tsx   # correo, rol, enlaces a la cuenta (y al perfil y a las citas) y el botón para cerrar sesión
@@ -212,6 +213,7 @@ src/
 │   ├── language-switcher.tsx # enlaces a la misma página en cada idioma
 │   ├── main-nav.tsx       # las secciones públicas del sitio, marcando la actual
 │   ├── my-appointments.tsx # citas próximas y anteriores, el historial por páginas
+│   ├── pagination.tsx     # enlaces a la página anterior y la siguiente, en la URL
 │   ├── profile-details.tsx # el perfil del paciente, leído en el servidor detrás de requireSession
 │   ├── profile-form.tsx   # cambia el perfil y las preferencias de recordatorios
 │   ├── login-form.tsx     # formulario de inicio de sesión: errores junto a cada campo, fallas anunciadas
@@ -260,6 +262,7 @@ src/
 │   ├── use-focus-first-invalid.ts # mueve el foco al primer campo con error
 │   └── use-hydrated.ts    # si React ya hidrató la página
 ├── patients/
+│   ├── access-log.ts      # getMyAccessLog(): quién abrió el expediente del paciente, leído en el servidor
 │   ├── profile.ts         # getMyProfile(): el perfil del paciente, leído en el servidor
 │   ├── profile-schema.ts  # las reglas de la API para cambiar el perfil, revisadas antes de enviar
 │   └── types.ts           # Patient
@@ -309,7 +312,7 @@ Están escritas en inglés, como el código.
 4. ~~Capa de datos: store de Redux Toolkit, cliente de la API, thunks, sagas y MSW~~ ✅
 5. ~~Autenticación: inicio de sesión, registro, cierre de sesión, rutas protegidas por rol, vencimiento de sesión~~ ✅ (la navegación por rol crece con cada área)
 6. ~~Páginas públicas: inicio, servicios y médicos~~ ✅
-7. Área del paciente: perfil, reservas, mis citas, registro de accesos
+7. ~~Área del paciente: perfil, reservas, mis citas, registro de accesos~~ ✅
 8. Recepción: búsqueda de pacientes, pacientes sin cuenta, reservas para un paciente, agenda del día
 9. Área del médico: agenda, horario y días libres, asistencia
 10. Expediente clínico: antecedentes, notas clínicas, archivos

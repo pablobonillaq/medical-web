@@ -38,10 +38,7 @@ test('a visitor without a session goes to sign in first', async ({ page }) => {
   await expect(page).toHaveURL('/es/login?next=%2Fes%2Fappointments%2Fnew')
 })
 
-test('the patient books an appointment step by step and sees it', async ({
-  page,
-  browserName,
-}, testInfo) => {
+test('the patient books an appointment step by step and sees it', async ({ page }, testInfo) => {
   const days = bookingDay(testInfo, 0)
   await newPatient(page)
   await page.getByRole('banner').getByRole('link', { name: 'Mis citas' }).click()
@@ -62,9 +59,7 @@ test('the patient books an appointment step by step and sees it', async ({
   const timeStep = page.getByRole('region', { name: '3. Horario' })
   // Disabled until React hydrates (see SlotPickerForm)
   await expect(timeStep.getByRole('button', { name: 'Agendar cita' })).toBeEnabled()
-  // Firefox crashes while axe checks this page, a browser bug we could not pin down (see the
-  // README). Chromium, WebKit and mobile check it in full
-  if (browserName !== 'firefox') await expectNoAccessibilityViolations(page)
+  await expectNoAccessibilityViolations(page)
   const time = await chooseFirstTime(page)
   await timeStep.getByLabel('Notas para el médico').fill('Dolor abdominal')
   await timeStep.getByRole('button', { name: 'Agendar cita' }).click()
