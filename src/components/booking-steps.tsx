@@ -1,4 +1,5 @@
 import Form from 'next/form'
+import { calendarDate } from '@/appointments/format'
 import { getAvailability } from '@/appointments/server'
 import { requireSession } from '@/auth/guard'
 import { CATALOG_LANGUAGE, getDoctors, getServices } from '@/catalog/catalog'
@@ -55,10 +56,7 @@ export async function BookingSteps({ locale, labels, searchParams }: BookingStep
   const action = `/${locale}/appointments/new`
   const catalogLang = locale === CATALOG_LANGUAGE ? undefined : CATALOG_LANGUAGE
   // A date without time, written in the language of the page: "jueves, 26 de noviembre de 2026"
-  const longDate = (day: string) =>
-    new Intl.DateTimeFormat(locale, { dateStyle: 'full', timeZone: 'UTC' }).format(
-      new Date(`${day}T12:00:00.000Z`),
-    )
+  const longDate = (day: string) => calendarDate(day, locale)
   const submit = buttonVariants({ variant: 'secondary', className: 'self-start' })
   // The free times are read only once the patient chose a doctor and a date
   const times =

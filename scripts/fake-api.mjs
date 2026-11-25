@@ -331,6 +331,38 @@ const routesWithId = [
   },
   {
     method: 'PATCH',
+    path: /^\/appointments\/([^/]+)\/reschedule$/,
+    // Another of the free times of the same doctor, with 2 hours of notice; booked again
+    handler: async (request, id) => {
+      const { appointment, error } = changeable(request, id)
+      if (error) return error
+      if (Date.parse(appointment.startsAt) - Date.now() < 2 * 3_600_000) {
+        return {
+          status: 400,
+          body: { error: 'Patients can reschedule at least 2 hours in advance' },
+        }
+      }
+      const { startsAt } = await readJson(request)
+      if (startsAt === appointment.startsAt) {
+        return { status: 400, body: { error: 'The new time is the same as the current one' } }
+      }
+      const date = new Date(Date.parse(startsAt) - CLINIC_OFFSET_HOURS * 3_600_000)
+        .toISOString()
+        .slice(0, 10)
+      const free = freeSlots(appointment.doctor.id, appointment.service.id, date)
+      if (free.status !== 200) return free
+      const slot = free.body.slots.find((candidate) => candidate.startsAt === startsAt)
+      if (!slot) return { status: 409, body: { error: 'The requested time is not available' } }
+      Object.assign(appointment, {
+        startsAt: slot.startsAt,
+        endsAt: slot.endsAt,
+        status: 'scheduled',
+      })
+      return { status: 200, body: { appointment } }
+    },
+  },
+  {
+    method: 'PATCH',
     path: /^\/appointments\/([^/]+)\/cancel$/,
     // Patients need at least 2 hours of notice; the reason is optional
     handler: async (request, id) => {

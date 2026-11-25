@@ -190,6 +190,7 @@ export const es = {
     confirm: 'Confirmar asistencia',
     confirming: 'confirmando',
     confirmed: 'Confirmamos tu asistencia.',
+    reschedule: 'Cambiar fecha u hora',
     cancel: 'Cancelar cita',
     cancelling: 'cancelando',
     cancelTitle: '¿Cancelar esta cita?',
@@ -202,7 +203,8 @@ export const es = {
     confirmCancel: 'Sí, cancelar',
     close: 'Cerrar',
     cancelled: 'Cancelamos tu cita.',
-    tooLate: 'Faltan menos de 2 horas para tu cita. Para cancelarla, llama a la clínica.',
+    tooLate:
+      'Faltan menos de 2 horas para tu cita. Para cancelarla o cambiarla, llama a la clínica.',
     errorTitle: 'No pudimos hacer el cambio',
     errors: {
       notAllowed:
@@ -217,6 +219,41 @@ export const es = {
       cancelled: 'Cancelada',
       completed: 'Atendida',
       no_show: 'No asistió',
+    },
+    unavailableTitle: 'No pudimos cargar tu cita',
+    unavailable: 'El servicio no responde en este momento. Intenta de nuevo en unos minutos.',
+  },
+  reschedulePage: {
+    title: 'Cambiar fecha u hora',
+    intro:
+      'Con el mismo médico y el mismo servicio. Después de cambiarla, confirma tu asistencia de nuevo.',
+    loading: 'Cargando tu cita…',
+    current: 'Tu cita ahora',
+    dateStep: 'Nueva fecha',
+    dateLabel: 'Fecha',
+    dateHint: 'Desde hoy y hasta el {last}.',
+    showTimes: 'Ver horarios',
+    timeStep: 'Nuevo horario',
+    timeLabel: 'Horarios disponibles el {date}',
+    timeZoneNote: 'Horas de la clínica, en la Ciudad de México.',
+    noTimes: 'No hay otros horarios libres ese día. Prueba con otra fecha.',
+    invalidDate: 'Elige una fecha entre hoy y el {last}.',
+    chooseTime: 'Elige un horario.',
+    submit: 'Cambiar a este horario',
+    submitting: 'guardando',
+    rescheduled: 'Cambiamos tu cita.',
+    back: 'Volver a tu cita',
+    notAllowedTitle: 'Esta cita ya no se puede cambiar',
+    notAllowed:
+      'Solo se cambian las citas agendadas o confirmadas, con al menos 2 horas de anticipación. Si necesitas ayuda, llama a la clínica.',
+    errorTitle: 'No pudimos cambiar tu cita',
+    errors: {
+      slotTaken:
+        'Alguien acaba de tomar ese horario, o ya tienes otra cita a esa hora. Elige otro horario.',
+      notAllowed:
+        'Ya no es posible cambiar esta cita: faltan menos de 2 horas o el horario no es válido.',
+      network: 'No pudimos conectar con el servicio. Revisa tu conexión e inténtalo de nuevo.',
+      unknown: 'Algo salió mal. Inténtalo de nuevo en unos minutos.',
     },
     unavailableTitle: 'No pudimos cargar tu cita',
     unavailable: 'El servicio no responde en este momento. Intenta de nuevo en unos minutos.',

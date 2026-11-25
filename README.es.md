@@ -8,7 +8,7 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 a 6 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación, páginas públicas); Fase 7 (área del paciente) en curso: perfil, agendar citas y mis citas listos.
+> **Estado:** en desarrollo. Fases 1 a 6 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación, páginas públicas); Fase 7 (área del paciente) en curso: perfil, agendar citas, mis citas y cambiar fecha u hora listos.
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
@@ -104,7 +104,7 @@ npm run test:e2e         # genera el build, lo inicia en el puerto 3001 y corre 
 
 Playwright también inicia un sustituto de la API de Express en el puerto 3000 (`scripts/fake-api.mjs`), así las pruebas no necesitan base de datos. Siempre es este sustituto, con su cuenta ficticia, así que el puerto 3000 debe estar libre (detén antes la API real). Si `npm run dev` ya está corriendo en el puerto 3001, las pruebas lo usan en lugar de generar el build. El reporte HTML queda en `playwright-report/` (`npx playwright show-report`).
 
-**Problema conocido:** el Firefox que instala Playwright se cae ("Page crashed") mientras axe revisa dos páginas: la de agendar, en el paso 3, y la lista de Mis citas. Ocurrió sin importar cómo se llegara a la página ni qué reglas de axe se usaran, y no se pudo acotar más sin un Firefox local y su volcado de error. Mientras tanto, `e2e/booking.spec.ts` y `e2e/appointments.spec.ts` omiten axe en esas páginas solo en Firefox; Chromium, WebKit y la vista móvil las revisan completas, y `src/app/globals.test.ts` comprueba el contraste de cada par de colores.
+**Problema conocido:** el Firefox que instala Playwright se cae ("Page crashed") mientras axe revisa tres páginas: la de agendar, en el paso 3, la lista de Mis citas y la de cambiar la fecha u hora de una cita. Ocurrió sin importar cómo se llegara a la página ni qué reglas de axe se usaran, y no se pudo acotar más sin un Firefox local y su volcado de error. Mientras tanto, `e2e/booking.spec.ts` y `e2e/appointments.spec.ts` omiten axe en esas páginas solo en Firefox; Chromium, WebKit y la vista móvil las revisan completas, y `src/app/globals.test.ts` comprueba el contraste de cada par de colores.
 
 ### Lighthouse
 
@@ -162,13 +162,13 @@ docs/
 e2e/                       # pruebas end-to-end y de axe con Playwright
 mocks/                     # API simulada para las pruebas (MSW)
 scripts/
-└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, autenticación, servicios, médicos, perfil del paciente, horarios, citas, confirmar y cancelar)
+└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, autenticación, servicios, médicos, perfil del paciente, horarios, citas, confirmar, cancelar y cambiar de horario)
 src/
 ├── api/
 │   ├── client.ts          # fetch para /api: JSON de ida y vuelta, errores como ApiError
 │   └── server.ts          # fetch para Server Components, con la sesión del visitante (sin caché)
 ├── appointments/
-│   ├── format.ts          # la fecha y hora de una cita en la clínica, en cada idioma
+│   ├── format.ts          # la fecha y hora de una cita en la clínica, y fechas de calendario, en cada idioma
 │   ├── rules.ts           # lo que un paciente puede hacer con una cita en este momento
 │   ├── server.ts          # getAvailability(), getAppointment() y getMyAppointments(), en el servidor
 │   └── types.ts           # Appointment, Slot y Availability
@@ -188,7 +188,7 @@ src/
 │   ├── globals.css        # Tailwind y tokens de diseño (colores con light-dark())
 │   ├── globals.test.ts    # revisa el contraste WCAG de cada par de colores, en los dos temas
 │   └── [lang]/            # todas las páginas, bajo /es o /en
-│       ├── appointments/  # mis citas, agendar (new/) y una cita ([id]/), solo pacientes
+│       ├── appointments/  # mis citas, agendar (new/), una cita ([id]/) y un nuevo horario para ella ([id]/reschedule/), solo pacientes
 │       ├── [...rest]/     # cualquier dirección que no sea una página: un 404
 │       ├── account/       # mi cuenta (protegida)
 │       ├── forbidden.tsx  # página 403, para un rol que no puede ver una página
@@ -204,7 +204,7 @@ src/
 │   ├── account-details.tsx # correo y rol de quien inició sesión, detrás de requireSession
 │   ├── account-area.tsx   # la cuenta en el encabezado: quién inició sesión, detrás de <Suspense>
 │   ├── account-menu.tsx   # correo, rol, enlaces a la cuenta (y al perfil y a las citas) y el botón para cerrar sesión
-│   ├── appointment-actions.tsx # confirmar o cancelar una cita, con un diálogo antes de cancelar
+│   ├── appointment-actions.tsx # confirmar, mover o cancelar una cita, con un diálogo antes de cancelar
 │   ├── appointment-details.tsx # una cita del paciente, en la hora de la clínica
 │   ├── appointment-status-badge.tsx # el estado de una cita, en palabras y color
 │   ├── booking-steps.tsx  # agendar paso a paso: servicio, médico y fecha, horario
@@ -216,6 +216,8 @@ src/
 │   ├── profile-form.tsx   # cambia el perfil y las preferencias de recordatorios
 │   ├── login-form.tsx     # formulario de inicio de sesión: errores junto a cada campo, fallas anunciadas
 │   ├── register-form.tsx  # formulario de registro de pacientes, inicia sesión al crear la cuenta
+│   ├── reschedule-form.tsx # los otros horarios libres y el cambio en sí
+│   ├── reschedule-steps.tsx # nueva fecha y hora para una cita, con el mismo médico y servicio
 │   ├── doctor-directory.tsx # los médicos en tarjetas, con un filtro por servicio en la URL
 │   ├── api-status.tsx     # si el servicio está disponible, en el pie
 │   ├── site-footer.tsx    # pie de cada página
@@ -226,6 +228,7 @@ src/
 │   ├── sign-in-link.tsx   # enlace para iniciar sesión que regresa a la página actual
 │   ├── site-header.tsx    # encabezado de cada página: enlace al inicio, cuenta, tema e idioma
 │   ├── theme-switcher.tsx # claro, oscuro o sistema, con botones de radio nativos
+│   ├── time-options.tsx   # los horarios libres como botones de radio, para agendar y para mover
 │   └── ui/                # librería de componentes
 │       ├── alert.tsx      # mensajes de información, éxito, aviso y error, anunciados cuando hace falta
 │       ├── badge.tsx      # etiquetas cortas, como el estado de una cita
@@ -267,6 +270,7 @@ src/
 │   ├── booking-slice.ts   # agendar una cita, con el thunk bookAppointment
 │   ├── hooks.ts           # useAppDispatch, useAppSelector y useAppStore tipados
 │   ├── profile-slice.ts   # guardar el perfil, con el thunk saveProfile
+│   ├── reschedule-slice.ts # mover una cita, con el thunk rescheduleAppointment
 │   ├── session-expiry-saga.ts # cuenta regresiva al vencimiento: primero el aviso, luego el fin
 │   ├── session-expiry-slice.ts # cuándo vence la sesión y si el aviso está abierto
 │   ├── session-slice.ts   # quién inició sesión, con los thunks signIn, signUp y signOut

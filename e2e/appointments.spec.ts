@@ -7,7 +7,7 @@ const DAY_OFFSET = { chromium: 10, firefox: 20, webkit: 30, mobile: 40 } as cons
 const appointmentDay = (testInfo: TestInfo, testNumber: number) =>
   DAY_OFFSET[testInfo.project.name as keyof typeof DAY_OFFSET] +
   testNumber +
-  3 * testInfo.repeatEachIndex
+  4 * testInfo.repeatEachIndex
 
 // Books the first free pediatrics appointment with Sofía Morales that many days ahead, and
 // opens it
@@ -27,8 +27,13 @@ const bookAppointment = async (page: Page, days: number) => {
   await expect(page).toHaveURL(/\/es\/appointments\/[0-9a-f-]{36}$/)
 }
 
-const status = (page: Page) =>
-  page.getByRole('term').filter({ hasText: 'Estado' }).locator('xpath=following-sibling::dd[1]')
+// What the appointment page says next to a term: "Estado", "Hora"
+const detail = (page: Page, term: string) =>
+  page
+    .getByRole('term')
+    .filter({ hasText: new RegExp(`^${term}$`) })
+    .locator('xpath=following-sibling::dd[1]')
+const status = (page: Page) => detail(page, 'Estado')
 
 test('a visitor without a session goes to sign in first', async ({ page }) => {
   await page.goto('/es/appointments')
@@ -102,4 +107,33 @@ test('Escape closes the cancel dialog and keeps the appointment', async ({ page 
   await expect(page.getByRole('dialog')).toBeHidden()
   await expect(status(page)).toHaveText('Agendada')
   await expect(page.getByRole('button', { name: 'Cancelar cita' })).toBeFocused()
+})
+
+test('the patient moves an appointment to another time of the same day', async ({
+  page,
+  browserName,
+}, testInfo) => {
+  await newPatient(page)
+  await bookAppointment(page, appointmentDay(testInfo, 3))
+  await expect(status(page)).toHaveText('Agendada')
+  const before = await detail(page, 'Hora').textContent()
+
+  await page.getByRole('link', { name: 'Cambiar fecha u hora' }).click()
+
+  await expect(page).toHaveURL(/\/es\/appointments\/[0-9a-f-]{36}\/reschedule$/)
+  // The times of the appointment's own day show from the start, without its current time
+  const times = page.getByRole('region', { name: '2. Nuevo horario' })
+  await expect(times.getByRole('button', { name: 'Cambiar a este horario' })).toBeEnabled()
+  // Firefox crashes while axe checks pages with these times, as when booking (see the README)
+  if (browserName !== 'firefox') await expectNoAccessibilityViolations(page)
+  const newTime = times.locator('label').first()
+  const chosen = (await newTime.textContent())!
+  await newTime.click()
+  await times.getByRole('button', { name: 'Cambiar a este horario' }).click()
+
+  await expect(page).toHaveURL(/\/es\/appointments\/[0-9a-f-]{36}$/)
+  await expect(page.getByRole('status').filter({ hasText: 'Cambiamos tu cita.' })).toBeVisible()
+  await expect(detail(page, 'Hora')).toContainText(chosen)
+  await expect(detail(page, 'Hora')).not.toHaveText(before!)
+  await expect(status(page)).toHaveText('Agendada')
 })

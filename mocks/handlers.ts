@@ -15,6 +15,9 @@ export const handlers = [
       timestamp: '2026-11-18T10:00:00.000Z',
     }),
   ),
+  http.patch('*/api/appointments/:id/reschedule', () =>
+    HttpResponse.json({ appointment: testAppointment }),
+  ),
   // The Next.js server reads the catalog straight from the API (API_URL), without /api
   http.get('*/services', () => HttpResponse.json({ services: testServices })),
   http.get('*/doctors', () => HttpResponse.json({ doctors: testDoctors })),

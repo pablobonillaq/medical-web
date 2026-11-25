@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useId, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -11,12 +11,7 @@ import type { Dictionary } from '@/i18n/dictionaries/es'
 import { useHydrated } from '@/lib/use-hydrated'
 import { bookAppointment, selectBookError, selectBooking } from '@/store/booking-slice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-
-// A free time, with its label already in the language of the page and the clinic's time zone
-export type SlotOption = {
-  startsAt: string
-  label: string
-}
+import { TimeOptions, type SlotOption } from './time-options'
 
 type SlotPickerFormProps = {
   locale: Locale
@@ -44,8 +39,6 @@ export function SlotPickerForm({
   const bookError = useAppSelector(selectBookError)
   const hydrated = useHydrated()
   const [missingTime, setMissingTime] = useState(false)
-  const errorId = useId()
-  const noteId = useId()
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -82,32 +75,12 @@ export function SlotPickerForm({
           {labels.errors[bookError]}
         </Alert>
       )}
-      <fieldset
-        className="flex flex-col gap-3"
-        aria-describedby={[noteId, missingTime ? errorId : null].filter(Boolean).join(' ')}
-        aria-invalid={missingTime || undefined}
-      >
-        <legend className="mb-1 font-medium">{legend}</legend>
-        <p id={noteId} className="text-sm text-muted-foreground">
-          {labels.timeZoneNote}
-        </p>
-        {missingTime && (
-          <p id={errorId} className="text-sm font-medium text-danger">
-            {labels.chooseTime}
-          </p>
-        )}
-        <div className="flex flex-wrap gap-2">
-          {slots.map((slot) => (
-            <label
-              key={slot.startsAt}
-              className="cursor-pointer rounded-md border border-input bg-surface px-4 py-2.5 text-sm font-medium has-checked:border-primary has-checked:bg-primary has-checked:text-primary-foreground has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring"
-            >
-              <input type="radio" name="startsAt" value={slot.startsAt} className="sr-only" />
-              {slot.label}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      <TimeOptions
+        legend={legend}
+        note={labels.timeZoneNote}
+        error={missingTime ? labels.chooseTime : undefined}
+        slots={slots}
+      />
       <Textarea
         name="notes"
         label={labels.notes}

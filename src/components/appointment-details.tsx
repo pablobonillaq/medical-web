@@ -85,9 +85,11 @@ export async function AppointmentDetails({ locale, labels, params }: Appointment
           </>
         )}
       </dl>
+      {/* Moving it needs the same notice as cancelling, so canCancel covers canReschedule */}
       {(actions.canConfirm || actions.canCancel || actions.tooLateToCancel) && (
         <AppointmentActions
           appointmentId={appointment.id}
+          locale={locale}
           actions={actions}
           labels={labels}
           date={date}

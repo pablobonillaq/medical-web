@@ -8,7 +8,7 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phases 1 to 6 completed (base setup, design system, languages and app shell, data layer, authentication, public pages); Phase 7 (patient area) in progress: profile, booking and my appointments done.
+> **Status:** in development. Phases 1 to 6 completed (base setup, design system, languages and app shell, data layer, authentication, public pages); Phase 7 (patient area) in progress: profile, booking, my appointments and rescheduling done.
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
@@ -104,7 +104,7 @@ npm run test:e2e         # builds the app, starts it on port 3001 and runs the t
 
 Playwright also starts a stand-in for the Express API on port 3000 (`scripts/fake-api.mjs`), so the tests need no database. It is always this stand-in, with its fictitious account, so port 3000 must be free (stop the real API first). If `npm run dev` is already running on port 3001, the tests use it instead of building. The HTML report stays in `playwright-report/` (`npx playwright show-report`).
 
-**Known issue:** the Firefox that Playwright installs crashes ("Page crashed") while axe checks two pages: the booking page, in step 3, and the My appointments list. It happened however the page was reached and with any set of axe rules, and could not be narrowed down further without a local Firefox and its crash dump. Until then, `e2e/booking.spec.ts` and `e2e/appointments.spec.ts` skip axe on those pages in Firefox only; Chromium, WebKit and the mobile viewport check them in full, and `src/app/globals.test.ts` checks the contrast of every color pair.
+**Known issue:** the Firefox that Playwright installs crashes ("Page crashed") while axe checks three pages: the booking page, in step 3, the My appointments list and the page to change an appointment's date or time. It happened however the page was reached and with any set of axe rules, and could not be narrowed down further without a local Firefox and its crash dump. Until then, `e2e/booking.spec.ts` and `e2e/appointments.spec.ts` skip axe on those pages in Firefox only; Chromium, WebKit and the mobile viewport check them in full, and `src/app/globals.test.ts` checks the contrast of every color pair.
 
 ### Lighthouse
 
@@ -162,13 +162,13 @@ docs/
 e2e/                       # end-to-end and axe tests with Playwright
 mocks/                     # fake API for the tests (MSW)
 scripts/
-└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, auth, services, doctors, patient profile, availability, booking, confirming and cancelling)
+└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, auth, services, doctors, patient profile, availability, booking, confirming, cancelling and rescheduling)
 src/
 ├── api/
 │   ├── client.ts          # fetch for /api: JSON in and out, errors as ApiError
 │   └── server.ts          # fetch for Server Components, with the visitor's session (never cached)
 ├── appointments/
-│   ├── format.ts          # an appointment's date and time at the clinic, per language
+│   ├── format.ts          # an appointment's date and time at the clinic, and calendar dates, per language
 │   ├── rules.ts           # what a patient may do with an appointment now
 │   ├── server.ts          # getAvailability(), getAppointment() and getMyAppointments(), on the server
 │   └── types.ts           # Appointment, Slot and Availability
@@ -189,7 +189,7 @@ src/
 │   ├── globals.test.ts    # checks the WCAG contrast of every color pair, in both themes
 │   └── [lang]/            # every page, under /es or /en
 │       ├── [...rest]/     # any address that matches no page: a 404
-│       ├── appointments/  # my appointments, booking (new/) and one appointment ([id]/), patients only
+│       ├── appointments/  # my appointments, booking (new/), one appointment ([id]/) and a new time for it ([id]/reschedule/), patients only
 │       ├── account/       # my account (protected)
 │       ├── forbidden.tsx  # 403 page, for a role that may not see a page
 │       ├── layout.tsx     # root layout: <html lang>, header, main region, footer, toasts
@@ -204,7 +204,7 @@ src/
 │   ├── account-details.tsx # email and role of who is signed in, behind requireSession
 │   ├── account-area.tsx   # the header's account: who is signed in, streamed behind <Suspense>
 │   ├── account-menu.tsx   # email, role, links to the account (and profile and appointments) and the sign-out button
-│   ├── appointment-actions.tsx # confirm or cancel an appointment, with a dialog before cancelling
+│   ├── appointment-actions.tsx # confirm, move or cancel an appointment, with a dialog before cancelling
 │   ├── appointment-details.tsx # one appointment of the patient, in the clinic's time
 │   ├── appointment-status-badge.tsx # an appointment's status, in words and color
 │   ├── booking-steps.tsx  # booking step by step: service, doctor and date, time
@@ -216,6 +216,8 @@ src/
 │   ├── profile-form.tsx   # changes the profile and the reminder preferences
 │   ├── login-form.tsx     # sign-in form: errors next to each field, announced failures
 │   ├── register-form.tsx  # patient sign-up form, signs in right after creating the account
+│   ├── reschedule-form.tsx # the other free times and the change itself
+│   ├── reschedule-steps.tsx # a new date and time for an appointment, same doctor and service
 │   ├── doctor-directory.tsx # the doctors as cards, with a filter by service in the URL
 │   ├── api-status.tsx     # whether the service is available, in the footer
 │   ├── site-footer.tsx    # footer of every page
@@ -226,6 +228,7 @@ src/
 │   ├── sign-in-link.tsx   # link to sign in that comes back to the current page
 │   ├── site-header.tsx    # banner of every page: link home, account, theme and language
 │   ├── theme-switcher.tsx # light, dark or system, as native radio buttons
+│   ├── time-options.tsx   # the free times as radio buttons, to book and to reschedule
 │   └── ui/                # component library
 │       ├── alert.tsx      # info, success, warning and error messages, announced when needed
 │       ├── badge.tsx      # short labels such as an appointment status
@@ -267,6 +270,7 @@ src/
 │   ├── booking-slice.ts   # booking an appointment, with the bookAppointment thunk
 │   ├── hooks.ts           # typed useAppDispatch, useAppSelector and useAppStore
 │   ├── profile-slice.ts   # saving the profile, with the saveProfile thunk
+│   ├── reschedule-slice.ts # moving an appointment, with the rescheduleAppointment thunk
 │   ├── session-expiry-saga.ts # counts down to the end of the session: warning, then end
 │   ├── session-expiry-slice.ts # when the session ends and whether the warning is open
 │   ├── session-slice.ts   # who signed in, with the signIn, signUp and signOut thunks

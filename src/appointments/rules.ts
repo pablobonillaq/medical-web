@@ -6,7 +6,9 @@ export type PatientActions = {
   canConfirm: boolean
   // Booked or confirmed, with enough notice
   canCancel: boolean
-  // Booked or confirmed and not started, but too close to cancel here: the patient calls
+  // The same rule as cancelling: a new time needs the same notice
+  canReschedule: boolean
+  // Booked or confirmed and not started, but too close to change here: the patient calls
   tooLateToCancel: boolean
 }
 
@@ -19,10 +21,12 @@ export function patientActions(
   const hoursLeft = (Date.parse(startsAt) - now.getTime()) / 3_600_000
   const active = status === 'scheduled' || status === 'confirmed'
   const upcoming = hoursLeft > 0
+  const withNotice = active && hoursLeft >= MIN_PATIENT_NOTICE_HOURS
 
   return {
     canConfirm: status === 'scheduled' && upcoming,
-    canCancel: active && hoursLeft >= MIN_PATIENT_NOTICE_HOURS,
+    canCancel: withNotice,
+    canReschedule: withNotice,
     tooLateToCancel: active && upcoming && hoursLeft < MIN_PATIENT_NOTICE_HOURS,
   }
 }

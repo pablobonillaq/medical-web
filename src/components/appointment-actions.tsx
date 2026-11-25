@@ -1,13 +1,15 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useId, useState, type FormEvent } from 'react'
 import type { PatientActions } from '@/appointments/rules'
 import { Alert } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/toast'
+import type { Locale } from '@/i18n/config'
 import type { Dictionary } from '@/i18n/dictionaries/es'
 import {
   cancelAppointment,
@@ -20,6 +22,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 
 type AppointmentActionsProps = {
   appointmentId: string
+  locale: Locale
   // What the patient may do now (see patientActions), decided on the server
   actions: PatientActions
   labels: Dictionary['appointmentPage']
@@ -28,11 +31,12 @@ type AppointmentActionsProps = {
   time: string
 }
 
-// Confirm or cancel the appointment; the page only shows it when one of the actions applies.
-// After a change, router.refresh() reads the appointment again from the API, so the status and
-// the buttons always show what the API has
+// Confirm, move or cancel the appointment; the page only shows it when one of the actions
+// applies. After a change, router.refresh() reads the appointment again from the API, so the
+// status and the buttons always show what the API has
 export function AppointmentActions({
   appointmentId,
+  locale,
   actions,
   labels,
   date,
@@ -107,6 +111,14 @@ export function AppointmentActions({
           <Button onClick={onConfirm} loading={changing} loadingLabel={labels.confirming}>
             {labels.confirm}
           </Button>
+        )}
+        {actions.canReschedule && (
+          <Link
+            href={`/${locale}/appointments/${appointmentId}/reschedule`}
+            className={buttonVariants({ variant: 'secondary' })}
+          >
+            {labels.reschedule}
+          </Link>
         )}
         {actions.canCancel && (
           <Button variant="danger" onClick={openCancel} disabled={changing}>

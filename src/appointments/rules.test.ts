@@ -5,18 +5,20 @@ const now = new Date('2026-11-24T18:00:00.000Z')
 const inHours = (hours: number) => new Date(now.getTime() + hours * 3_600_000).toISOString()
 
 describe('patientActions', () => {
-  it('lets the patient confirm or cancel a booked appointment with enough notice', () => {
+  it('lets the patient confirm, cancel or move a booked appointment with enough notice', () => {
     expect(patientActions({ status: 'scheduled', startsAt: inHours(24) }, now)).toEqual({
       canConfirm: true,
       canCancel: true,
+      canReschedule: true,
       tooLateToCancel: false,
     })
   })
 
-  it('lets the patient cancel, but not confirm again, a confirmed appointment', () => {
+  it('lets the patient cancel or move, but not confirm again, a confirmed appointment', () => {
     expect(patientActions({ status: 'confirmed', startsAt: inHours(24) }, now)).toEqual({
       canConfirm: false,
       canCancel: true,
+      canReschedule: true,
       tooLateToCancel: false,
     })
   })
@@ -25,6 +27,7 @@ describe('patientActions', () => {
     expect(patientActions({ status: 'scheduled', startsAt: inHours(1) }, now)).toEqual({
       canConfirm: true,
       canCancel: false,
+      canReschedule: false,
       tooLateToCancel: true,
     })
     expect(patientActions({ status: 'confirmed', startsAt: inHours(2) }, now).canCancel).toBe(true)
@@ -34,6 +37,7 @@ describe('patientActions', () => {
     expect(patientActions({ status, startsAt: inHours(24) }, now)).toEqual({
       canConfirm: false,
       canCancel: false,
+      canReschedule: false,
       tooLateToCancel: false,
     })
   })
@@ -42,6 +46,7 @@ describe('patientActions', () => {
     expect(patientActions({ status: 'scheduled', startsAt: inHours(-1) }, now)).toEqual({
       canConfirm: false,
       canCancel: false,
+      canReschedule: false,
       tooLateToCancel: false,
     })
   })

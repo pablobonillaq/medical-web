@@ -21,7 +21,12 @@ beforeEach(() => {
   vi.mocked(useRouter).mockReturnValue(router as unknown as ReturnType<typeof useRouter>)
 })
 
-const all: PatientActions = { canConfirm: true, canCancel: true, tooLateToCancel: false }
+const all: PatientActions = {
+  canConfirm: true,
+  canCancel: true,
+  canReschedule: true,
+  tooLateToCancel: false,
+}
 
 const renderActions = (actions: PatientActions = all) =>
   render(
@@ -29,6 +34,7 @@ const renderActions = (actions: PatientActions = all) =>
       <ToastProvider>
         <AppointmentActions
           appointmentId={testAppointment.id}
+          locale="es"
           actions={actions}
           labels={es.appointmentPage}
           date="jueves, 26 de noviembre de 2026"
@@ -52,12 +58,22 @@ describe('AppointmentActions', () => {
       within(section).getByRole('button', { name: 'Confirmar asistencia' }),
     ).toBeInTheDocument()
     expect(within(section).getByRole('button', { name: 'Cancelar cita' })).toBeInTheDocument()
+    expect(within(section).getByRole('link', { name: 'Cambiar fecha u hora' })).toHaveAttribute(
+      'href',
+      `/es/appointments/${testAppointment.id}/reschedule`,
+    )
   })
 
-  it('sends the patient to call when it is too late to cancel here', () => {
-    renderActions({ canConfirm: true, canCancel: false, tooLateToCancel: true })
+  it('sends the patient to call when it is too late to change it here', () => {
+    renderActions({
+      canConfirm: true,
+      canCancel: false,
+      canReschedule: false,
+      tooLateToCancel: true,
+    })
 
-    expect(screen.getByText(/Para cancelarla, llama a la clínica/)).toBeInTheDocument()
+    expect(screen.getByText(/Para cancelarla o cambiarla, llama a la clínica/)).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Cambiar fecha u hora' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Cancelar cita' })).not.toBeInTheDocument()
   })
 
