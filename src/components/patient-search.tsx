@@ -1,4 +1,5 @@
 import Form from 'next/form'
+import Link from 'next/link'
 import { requireSession } from '@/auth/guard'
 import { Alert } from '@/components/ui/alert'
 import { buttonVariants } from '@/components/ui/button'
@@ -114,9 +115,14 @@ export async function PatientSearch({ locale, labels, searchParams }: PatientSea
           <TableBody>
             {result.patients.map((patient) => (
               <TableRow key={patient.id}>
-                {/* The name names the row for screen readers */}
+                {/* The name names the row for screen readers, and opens the patient's file */}
                 <TableHeader scope="row">
-                  {patient.lastName}, {patient.firstName}
+                  <Link
+                    href={`${path}/${patient.id}`}
+                    className="underline underline-offset-4 hover:text-primary"
+                  >
+                    {patient.lastName}, {patient.firstName}
+                  </Link>
                 </TableHeader>
                 <TableCell className="whitespace-nowrap">
                   {birthDate.format(new Date(`${patient.birthDate}T00:00:00.000Z`))}

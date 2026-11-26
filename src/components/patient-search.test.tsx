@@ -68,6 +68,10 @@ describe('PatientSearch', () => {
     const [, withAccount, walkIn] = within(table).getAllByRole('row')
     expect(texts(withAccount)).toEqual(['Méndez, Luz', '21 may 1990', '+525512345678', 'Sí'])
     expect(texts(walkIn)).toEqual(['Ortega Salas, Ramón', '14 mar 1958', '+525587654321', 'No'])
+    expect(within(walkIn).getByRole('link', { name: 'Ortega Salas, Ramón' })).toHaveAttribute(
+      'href',
+      `/es/front-desk/patients/${testPatientPage.patients[1].id}`,
+    )
   })
 
   it('searches what is in the URL, and keeps it in the form', async () => {

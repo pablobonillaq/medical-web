@@ -1,4 +1,4 @@
-import type { AccessLogPage, Patient, PatientPage } from '@/patients/types'
+import type { AccessLogPage, Patient, PatientPage, StaffPatient } from '@/patients/types'
 import { testUsers } from './session'
 
 // The profile of the fictitious patient, as GET /patients/me answers it
@@ -41,25 +41,25 @@ export const testAccessLog: AccessLogPage = {
   total: 2,
 }
 
-// The front desk's search, as GET /patients answers it: the patient with an account and one the
-// front desk registered without one, sorted by last name
+// A patient the front desk registered without an account, as GET /patients/:id answers it
+export const testWalkIn: StaffPatient = {
+  id: '0190a7b2-3333-7000-8000-000000000002',
+  firstName: 'Ramón',
+  lastName: 'Ortega Salas',
+  birthDate: '1958-03-14',
+  phone: '+525587654321',
+  contactEmail: null,
+  email: null,
+  emailRemindersOptIn: false,
+  whatsappOptIn: false,
+  updatedAt: '2026-11-21T10:00:00.000Z',
+  hasAccount: false,
+}
+
+// The front desk's search, as GET /patients answers it: the patient with an account and the one
+// without, sorted by last name
 export const testPatientPage: PatientPage = {
-  patients: [
-    { ...testProfile, hasAccount: true },
-    {
-      id: '0190a7b2-3333-7000-8000-000000000002',
-      firstName: 'Ramón',
-      lastName: 'Ortega Salas',
-      birthDate: '1958-03-14',
-      phone: '+525587654321',
-      contactEmail: null,
-      email: null,
-      emailRemindersOptIn: false,
-      whatsappOptIn: false,
-      updatedAt: '2026-11-21T10:00:00.000Z',
-      hasAccount: false,
-    },
-  ],
+  patients: [{ ...testProfile, hasAccount: true }, testWalkIn],
   page: 1,
   pageSize: 20,
   total: 2,

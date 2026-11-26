@@ -18,10 +18,13 @@ export type Patient = {
   updatedAt: string
 }
 
-// One page of GET /patients, the front desk's search, sorted by last name. hasAccount: whether
-// the patient signed up, or the front desk registered them without an account
+// A patient as the staff sees them (GET /patients, GET /patients/:id). hasAccount: whether the
+// patient signed up, or the front desk registered them without an account
+export type StaffPatient = Patient & { hasAccount: boolean }
+
+// One page of GET /patients, the front desk's search, sorted by last name
 export type PatientPage = {
-  patients: (Patient & { hasAccount: boolean })[]
+  patients: StaffPatient[]
   page: number
   pageSize: number
   total: number

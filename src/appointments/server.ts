@@ -39,7 +39,7 @@ export async function getAppointment(id: string): Promise<Appointment | null> {
   }
 }
 
-type MyAppointmentsQuery = {
+type AppointmentsQuery = {
   // upcoming: from now on, the nearest first. past: before now, the latest first
   when: 'upcoming' | 'past'
   page?: number
@@ -47,19 +47,27 @@ type MyAppointmentsQuery = {
   now: Date
 }
 
-// One page of the signed-in patient's appointments, read on the server with their session. The
-// API only answers with the patient's own, whatever the query says
-export async function getMyAppointments({
-  when,
-  page = 1,
-  pageSize,
-  now,
-}: MyAppointmentsQuery): Promise<AppointmentPage> {
-  const query = new URLSearchParams({
+const appointmentsQuery = ({ when, page = 1, pageSize, now }: AppointmentsQuery) =>
+  new URLSearchParams({
     [when === 'upcoming' ? 'from' : 'to']: now.toISOString(),
     order: when === 'upcoming' ? 'asc' : 'desc',
     page: String(page),
     pageSize: String(pageSize),
   })
-  return serverApiRequest<AppointmentPage>(`/appointments?${query}`)
+
+// One page of the signed-in patient's appointments, read on the server with their session. The
+// API only answers with the patient's own, whatever the query says
+export async function getMyAppointments(query: AppointmentsQuery): Promise<AppointmentPage> {
+  return serverApiRequest<AppointmentPage>(`/appointments?${appointmentsQuery(query)}`)
+}
+
+// One page of a patient's appointments, for the front desk, read on the server with the staff
+// member's session
+export async function getPatientAppointments(
+  patientId: string,
+  query: AppointmentsQuery,
+): Promise<AppointmentPage> {
+  const search = appointmentsQuery(query)
+  search.set('patientId', patientId)
+  return serverApiRequest<AppointmentPage>(`/appointments?${search}`)
 }

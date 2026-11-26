@@ -3,7 +3,12 @@ import { server } from '@mocks/node'
 import { http, HttpResponse } from 'msw/http'
 import { cookies, headers } from 'next/headers'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getAppointment, getAvailability, getMyAppointments } from './server'
+import {
+  getAppointment,
+  getAvailability,
+  getMyAppointments,
+  getPatientAppointments,
+} from './server'
 
 // next/headers only works inside a Next.js request: the session cookie is set by hand
 vi.mock('next/headers', () => ({ cookies: vi.fn(), headers: vi.fn() }))
@@ -91,6 +96,29 @@ describe('getMyAppointments', () => {
       order: 'desc',
       page: '3',
       pageSize: '10',
+    })
+  })
+})
+
+describe('getPatientAppointments', () => {
+  it("asks for one page of a patient's appointments", async () => {
+    let url: URL | undefined
+    server.use(
+      http.get('http://localhost:3000/appointments', ({ request }) => {
+        url = new URL(request.url)
+        return HttpResponse.json({ appointments: [], page: 1, pageSize: 10, total: 0 })
+      }),
+    )
+    const now = new Date('2026-11-24T18:00:00.000Z')
+
+    await getPatientAppointments('patient-1', { when: 'past', page: 2, pageSize: 10, now })
+
+    expect(Object.fromEntries(url!.searchParams)).toEqual({
+      to: now.toISOString(),
+      order: 'desc',
+      page: '2',
+      pageSize: '10',
+      patientId: 'patient-1',
     })
   })
 })

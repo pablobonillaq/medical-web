@@ -177,6 +177,37 @@ const profiles = new Map([
   }),
 ])
 
+// Ramón Ortega Salas, registered by the front desk, had a consultation with Ana Garay a month ago
+// and has another in 5 days. Ana Garay sees no one in the booking tests
+const walkIn = [...profiles.values()].find(({ lastName }) => lastName === 'Ortega Salas')
+for (const [days, status] of [
+  [-30, 'completed'],
+  [5, 'scheduled'],
+]) {
+  const [doctor] = doctors
+  const [service] = doctor.services
+  const startsAt = new Date(
+    Date.parse(`${clinicToday()}T00:00:00.000Z`) +
+      days * 86_400_000 +
+      (10 + CLINIC_OFFSET_HOURS) * 3_600_000,
+  )
+  const appointment = {
+    id: randomUUID(),
+    status,
+    startsAt: startsAt.toISOString(),
+    endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60_000).toISOString(),
+    notes: null,
+    service,
+    doctor: {
+      id: doctor.id,
+      firstName: doctor.firstName,
+      lastName: doctor.lastName,
+      specialty: doctor.specialty,
+    },
+  }
+  appointments.set(appointment.id, { appointment, userId: null, patientId: walkIn.id })
+}
+
 // A token shaped like the API's, valid for an hour. The signature is fake: nothing checks it
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url')
 const decode = (part) => JSON.parse(Buffer.from(part, 'base64url').toString('utf8'))
@@ -358,11 +389,15 @@ const routes = {
         specialty: doctor.specialty,
       },
     }
-    appointments.set(appointment.id, { appointment, userId: user.id })
+    appointments.set(appointment.id, {
+      appointment,
+      userId: user.id,
+      patientId: profiles.get(user.id).id,
+    })
     return { status: 201, body: { appointment } }
   },
 
-  // Only the patient's own appointments, filtered and paginated as in the real API
+  // Filtered and paginated as in the real API
   'GET /appointments': (request) => {
     const user = sessionUser(request)
     if (!user) return { status: 401, body: { error: 'Authentication required' } }
@@ -372,8 +407,13 @@ const routes = {
     const page = Number(query.get('page') ?? 1)
     const pageSize = Number(query.get('pageSize') ?? 20)
     const direction = query.get('order') === 'desc' ? -1 : 1
+    // The staff see anyone's (one patient's with ?patientId=); patients only their own
+    const staff = ['employee', 'admin'].includes(user.role)
+    const patientId = query.get('patientId')
     const mine = [...appointments.values()]
-      .filter(({ userId }) => userId === user.id)
+      .filter((booked) =>
+        staff ? !patientId || booked.patientId === patientId : booked.userId === user.id,
+      )
       .map(({ appointment }) => appointment)
       .filter(({ startsAt }) => (!from || startsAt >= from) && (!to || startsAt < to))
       .sort((a, b) => direction * a.startsAt.localeCompare(b.startsAt))
@@ -418,6 +458,21 @@ const changeable = (request, id) => {
 
 // Routes with an id in the path: the handler gets it after the request
 const routesWithId = [
+  {
+    method: 'GET',
+    path: /^\/patients\/([^/]+)$/,
+    // The staff open any patient's file; an id that is no patient's is a 404
+    handler: (request, id) => {
+      const user = sessionUser(request)
+      if (!user) return { status: 401, body: { error: 'Authentication required' } }
+      if (!['employee', 'admin'].includes(user.role)) {
+        return { status: 404, body: { error: 'Patient not found' } }
+      }
+      const found = [...profiles.values()].find((candidate) => candidate.id === id)
+      if (!found) return { status: 404, body: { error: 'Patient not found' } }
+      return { status: 200, body: { patient: { ...found, hasAccount: found.email !== null } } }
+    },
+  },
   {
     method: 'PATCH',
     path: /^\/appointments\/([^/]+)\/status$/,

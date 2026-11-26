@@ -8,7 +8,7 @@
 
 Cliente web de [Medical API](https://github.com/pablobonillaq/medical-api): agenda de citas, expediente clínico, archivos y chat con la recepción de la clínica, para pacientes, médicos, recepción y administradores. Accesible, en español e inglés, con tema claro y oscuro.
 
-> **Estado:** en desarrollo. Fases 1 a 7 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación, páginas públicas, área del paciente); Fase 8 (recepción) en curso: búsqueda de pacientes lista.
+> **Estado:** en desarrollo. Fases 1 a 7 completadas (configuración base, sistema de diseño, idiomas y estructura, capa de datos, autenticación, páginas públicas, área del paciente); Fase 8 (recepción) en curso: búsqueda y ficha de pacientes listas.
 > Proyecto de portfolio. Todos los datos de prueba son **ficticios**.
 
 ## Funcionalidades
@@ -162,7 +162,7 @@ docs/
 e2e/                       # pruebas end-to-end y de axe con Playwright
 mocks/                     # API simulada para las pruebas (MSW)
 scripts/
-└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, autenticación, servicios, médicos, perfil del paciente, horarios, citas, confirmar, cancelar, cambiar de horario, registro de accesos y búsqueda de pacientes de recepción)
+└── fake-api.mjs           # sustituto de la API en las pruebas e2e y Lighthouse CI (salud, autenticación, servicios, médicos, perfil del paciente, horarios, citas, confirmar, cancelar, cambiar de horario, registro de accesos, y búsqueda y fichas de pacientes de recepción)
 src/
 ├── api/
 │   ├── client.ts          # fetch para /api: JSON de ida y vuelta, errores como ApiError
@@ -170,7 +170,7 @@ src/
 ├── appointments/
 │   ├── format.ts          # la fecha y hora de una cita en la clínica, y fechas de calendario, en cada idioma
 │   ├── rules.ts           # lo que un paciente puede hacer con una cita en este momento
-│   ├── server.ts          # getAvailability(), getAppointment() y getMyAppointments(), en el servidor
+│   ├── server.ts          # getAvailability(), getAppointment(), getMyAppointments() y getPatientAppointments(), en el servidor
 │   └── types.ts           # Appointment, Slot y Availability
 ├── auth/
 │   ├── constants.ts       # el nombre de la cookie de sesión
@@ -191,7 +191,7 @@ src/
 │       ├── appointments/  # mis citas, agendar (new/), una cita ([id]/) y un nuevo horario para ella ([id]/reschedule/), solo pacientes
 │       ├── [...rest]/     # cualquier dirección que no sea una página: un 404
 │       ├── account/       # mi cuenta (protegida)
-│       ├── front-desk/    # el área de recepción: búsqueda de pacientes (patients/), solo recepción
+│       ├── front-desk/    # el área de recepción: búsqueda de pacientes (patients/) y fichas (patients/[id]/), solo recepción
 │       ├── forbidden.tsx  # página 403, para un rol que no puede ver una página
 │       ├── layout.tsx     # layout raíz: <html lang>, encabezado, región principal, pie, avisos
 │       ├── login/         # página de inicio de sesión
@@ -207,6 +207,7 @@ src/
 │   ├── account-area.tsx   # la cuenta en el encabezado: quién inició sesión, detrás de <Suspense>
 │   ├── account-menu.tsx   # correo, rol, enlaces a la cuenta y al área de cada rol, y el botón para cerrar sesión
 │   ├── appointment-actions.tsx # confirmar, mover o cancelar una cita, con un diálogo antes de cancelar
+│   ├── appointment-list.tsx # citas como tarjetas: fecha y hora, servicio, médico, estado
 │   ├── appointment-details.tsx # una cita del paciente, en la hora de la clínica
 │   ├── appointment-status-badge.tsx # el estado de una cita, en palabras y color
 │   ├── booking-steps.tsx  # agendar paso a paso: servicio, médico y fecha, horario
@@ -215,6 +216,7 @@ src/
 │   ├── main-nav.tsx       # las secciones públicas del sitio, marcando la actual
 │   ├── my-appointments.tsx # citas próximas y anteriores, el historial por páginas
 │   ├── pagination.tsx     # enlaces a la página anterior y la siguiente, en la URL
+│   ├── patient-file.tsx   # la ficha de un paciente para recepción: datos y citas
 │   ├── patient-search.tsx # la búsqueda de pacientes de recepción: por nombre o teléfono, en la URL
 │   ├── profile-details.tsx # el perfil del paciente, leído en el servidor detrás de requireSession
 │   ├── profile-form.tsx   # cambia el perfil y las preferencias de recordatorios
@@ -267,6 +269,7 @@ src/
 │   ├── access-log.ts      # getMyAccessLog(): quién abrió el expediente del paciente, leído en el servidor
 │   ├── profile.ts         # getMyProfile(): el perfil del paciente, leído en el servidor
 │   ├── profile-schema.ts  # las reglas de la API para cambiar el perfil, revisadas antes de enviar
+│   ├── patient.ts         # getPatient(): un paciente para recepción, leído en el servidor
 │   ├── search.ts          # searchPatients(): la búsqueda de recepción, leída en el servidor
 │   └── types.ts           # Patient, PatientPage y el registro de accesos
 ├── store/

@@ -56,3 +56,24 @@ test('the front desk finds a patient by phone, and needs 2 characters', async ({
   ).toHaveAccessibleDescription(/Escribe al menos 2 caracteres/)
   await expect(page.getByRole('table')).toHaveCount(0)
 })
+
+test("the front desk opens a patient's file, with their appointments", async ({ page }) => {
+  await openPatients(page)
+  await search(page, 'ortega')
+
+  await page.getByRole('link', { name: 'Ortega Salas, Ramón' }).click()
+
+  await expect(page).toHaveURL(/\/es\/front-desk\/patients\/[0-9a-f-]{36}$/)
+  const patient = page.getByRole('region', { name: 'Ramón Ortega Salas' })
+  await expect(patient).toContainText('14 de marzo de 1958')
+  await expect(patient).toContainText('No tiene: la registró recepción')
+  const upcoming = page.getByRole('region', { name: 'Próximas citas' })
+  await expect(upcoming.getByRole('listitem')).toHaveCount(1)
+  await expect(upcoming).toContainText('Consulta general · Ana Garay')
+  await expect(upcoming).toContainText('Agendada')
+  await expect(page.getByRole('region', { name: 'Citas anteriores' })).toContainText('Atendida')
+  await expectNoAccessibilityViolations(page)
+
+  await page.getByRole('link', { name: 'Volver a pacientes' }).click()
+  await expect(page).toHaveURL('/es/front-desk/patients')
+})

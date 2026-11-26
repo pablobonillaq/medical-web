@@ -1,18 +1,15 @@
 import Link from 'next/link'
-import { appointmentDate, appointmentTime } from '@/appointments/format'
 import { getMyAppointments } from '@/appointments/server'
 import type { Appointment, AppointmentPage } from '@/appointments/types'
 import { requireSession } from '@/auth/guard'
-import { CATALOG_LANGUAGE } from '@/catalog/catalog'
 import { Alert } from '@/components/ui/alert'
 import { buttonVariants } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { VisuallyHidden } from '@/components/ui/visually-hidden'
 import type { Locale } from '@/i18n/config'
 import type { Dictionary } from '@/i18n/dictionaries/es'
-import { AppointmentStatusBadge } from './appointment-status-badge'
 import { Pagination, pageParam } from './pagination'
+import { AppointmentList } from './appointment-list'
 
 type MyAppointmentsProps = {
   locale: Locale
@@ -53,6 +50,9 @@ export async function MyAppointments({
     )
   }
 
+  // Each appointment opens the patient's page for it
+  const patientHref = ({ id }: Appointment) => `/${locale}/appointments/${id}`
+
   return (
     <div className="flex flex-col gap-10">
       <Link
@@ -73,6 +73,7 @@ export async function MyAppointments({
             appointments={upcoming.appointments}
             locale={locale}
             statuses={statuses}
+            href={patientHref}
           />
         )}
       </section>
@@ -84,7 +85,12 @@ export async function MyAppointments({
         {past.appointments.length === 0 ? (
           <p className="text-muted-foreground">{labels.noPast}</p>
         ) : (
-          <AppointmentList appointments={past.appointments} locale={locale} statuses={statuses} />
+          <AppointmentList
+            appointments={past.appointments}
+            locale={locale}
+            statuses={statuses}
+            href={patientHref}
+          />
         )}
         <Pagination
           path={`/${locale}/appointments`}
@@ -98,44 +104,6 @@ export async function MyAppointments({
         />
       </section>
     </div>
-  )
-}
-
-type AppointmentListProps = {
-  appointments: Appointment[]
-  locale: Locale
-  statuses: Dictionary['appointmentPage']['statuses']
-}
-
-// Each appointment as a card whose title, its date and time, links to it
-function AppointmentList({ appointments, locale, statuses }: AppointmentListProps) {
-  const catalogLang = locale === CATALOG_LANGUAGE ? undefined : CATALOG_LANGUAGE
-
-  return (
-    <ul className="flex flex-col gap-3">
-      {appointments.map((appointment) => (
-        <li key={appointment.id}>
-          <Card className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="font-semibold">
-                <Link
-                  href={`/${locale}/appointments/${appointment.id}`}
-                  className="underline underline-offset-4 hover:text-primary"
-                >
-                  {appointmentDate(appointment.startsAt, locale)},{' '}
-                  {appointmentTime(appointment.startsAt, locale)}
-                </Link>
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                <span lang={catalogLang}>{appointment.service.name}</span> ·{' '}
-                {appointment.doctor.firstName} {appointment.doctor.lastName}
-              </p>
-            </div>
-            <AppointmentStatusBadge status={appointment.status} labels={statuses} />
-          </Card>
-        </li>
-      ))}
-    </ul>
   )
 }
 
