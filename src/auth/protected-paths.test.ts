@@ -7,6 +7,7 @@ describe('isProtectedPath', () => {
     expect(isProtectedPath('/account/settings')).toBe(true)
     expect(isProtectedPath('/profile')).toBe(true)
     expect(isProtectedPath('/appointments/new')).toBe(true)
+    expect(isProtectedPath('/front-desk/patients')).toBe(true)
   })
 
   it('leaves the other pages open', () => {

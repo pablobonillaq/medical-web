@@ -8,7 +8,7 @@
 
 Web client for [Medical API](https://github.com/pablobonillaq/medical-api): appointment booking, medical records, files and chat with the clinic's front desk, for patients, doctors, front desk staff and admins. Accessible, in Spanish and English, with light and dark themes.
 
-> **Status:** in development. Phases 1 to 7 completed (base setup, design system, languages and app shell, data layer, authentication, public pages, patient area).
+> **Status:** in development. Phases 1 to 7 completed (base setup, design system, languages and app shell, data layer, authentication, public pages, patient area); Phase 8 (front desk) in progress: patient search done.
 > Portfolio project. All test data is **fictitious**.
 
 ## Features
@@ -162,7 +162,7 @@ docs/
 e2e/                       # end-to-end and axe tests with Playwright
 mocks/                     # fake API for the tests (MSW)
 scripts/
-└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, auth, services, doctors, patient profile, availability, booking, confirming, cancelling, rescheduling and the access log)
+└── fake-api.mjs           # stand-in for the API in the e2e tests and Lighthouse CI (health, auth, services, doctors, patient profile, availability, booking, confirming, cancelling, rescheduling, the access log and the front desk's patient search)
 src/
 ├── api/
 │   ├── client.ts          # fetch for /api: JSON in and out, errors as ApiError
@@ -191,6 +191,7 @@ src/
 │       ├── [...rest]/     # any address that matches no page: a 404
 │       ├── appointments/  # my appointments, booking (new/), one appointment ([id]/) and a new time for it ([id]/reschedule/), patients only
 │       ├── account/       # my account (protected)
+│       ├── front-desk/    # the front desk area: patient search (patients/), front desk only
 │       ├── forbidden.tsx  # 403 page, for a role that may not see a page
 │       ├── layout.tsx     # root layout: <html lang>, header, main region, footer, toasts
 │       ├── login/         # sign-in page
@@ -204,7 +205,7 @@ src/
 │   ├── access-log.tsx     # who of the staff opened the patient's record, page by page
 │   ├── account-details.tsx # email and role of who is signed in, behind requireSession
 │   ├── account-area.tsx   # the header's account: who is signed in, streamed behind <Suspense>
-│   ├── account-menu.tsx   # email, role, links to the account (and profile and appointments) and the sign-out button
+│   ├── account-menu.tsx   # email, role, links to the account and the area of each role, and the sign-out button
 │   ├── appointment-actions.tsx # confirm, move or cancel an appointment, with a dialog before cancelling
 │   ├── appointment-details.tsx # one appointment of the patient, in the clinic's time
 │   ├── appointment-status-badge.tsx # an appointment's status, in words and color
@@ -214,6 +215,7 @@ src/
 │   ├── main-nav.tsx       # the public sections of the site, marking the current one
 │   ├── my-appointments.tsx # upcoming and past appointments, the history page by page
 │   ├── pagination.tsx     # links to the page before and after, in the URL
+│   ├── patient-search.tsx # the front desk's patient search: by name or phone, in the URL
 │   ├── profile-details.tsx # the patient's profile, read on the server behind requireSession
 │   ├── profile-form.tsx   # changes the profile and the reminder preferences
 │   ├── login-form.tsx     # sign-in form: errors next to each field, announced failures
@@ -265,7 +267,8 @@ src/
 │   ├── access-log.ts      # getMyAccessLog(): who opened the patient's record, read on the server
 │   ├── profile.ts         # getMyProfile(): the patient's own profile, read on the server
 │   ├── profile-schema.ts  # the API's rules for a profile change, checked before sending
-│   └── types.ts           # Patient
+│   ├── search.ts          # searchPatients(): the front desk's search, read on the server
+│   └── types.ts           # Patient, PatientPage and the access log
 ├── store/
 │   ├── api-health-saga.ts # checks the API every minute, backs off on failures, pauses in hidden tabs
 │   ├── api-status-slice.ts # whether the API answers, with the checkApiHealth thunk

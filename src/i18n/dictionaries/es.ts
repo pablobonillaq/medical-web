@@ -46,6 +46,7 @@ export const es = {
     myAccount: 'Mi cuenta',
     myProfile: 'Mi perfil',
     myAppointments: 'Mis citas',
+    patients: 'Pacientes',
     signOutFailed: 'No pudimos cerrar tu sesión. Revisa tu conexión e inténtalo de nuevo.',
     roles: {
       admin: 'Administración',
@@ -125,6 +126,34 @@ export const es = {
     privacyIntro:
       'Puedes ver quién del personal de la clínica abrió o cambió tu expediente médico.',
     accessLog: 'Ver quién consultó mi expediente',
+  },
+  patientsPage: {
+    title: 'Pacientes',
+    intro: 'Busca a un paciente por su nombre o su teléfono.',
+    loading: 'Cargando los pacientes…',
+    searchLabel: 'Buscar paciente',
+    searchHint:
+      'Nombre, apellidos o al menos 4 dígitos del teléfono. Déjalo vacío para ver a todos.',
+    search: 'Buscar',
+    tooShort: 'Escribe al menos 2 caracteres, o deja la búsqueda vacía.',
+    allCaption: 'Todos los pacientes',
+    resultsCaption: 'Pacientes que coinciden con “{search}”',
+    results: { one: '1 paciente', other: '{count} pacientes' },
+    name: 'Nombre',
+    birthDate: 'Fecha de nacimiento',
+    phone: 'Teléfono',
+    account: 'Cuenta en línea',
+    withAccount: 'Sí',
+    withoutAccount: 'No',
+    noResults:
+      'No encontramos pacientes con “{search}”. Revisa cómo está escrito, o busca por teléfono.',
+    noPatients: 'Todavía no hay pacientes registrados.',
+    pagination: 'Páginas de pacientes',
+    previous: 'Anteriores',
+    next: 'Siguientes',
+    pageOf: 'Página {page} de {pages}',
+    unavailableTitle: 'No pudimos cargar los pacientes',
+    unavailable: 'El servicio no responde en este momento. Intenta de nuevo en unos minutos.',
   },
   accessLogPage: {
     title: 'Quién consultó mi expediente',

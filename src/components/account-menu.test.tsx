@@ -58,13 +58,18 @@ describe('AccountMenu', () => {
       'href',
       '/es/appointments',
     )
+    expect(screen.queryByRole('link', { name: 'Pacientes' })).not.toBeInTheDocument()
   })
 
-  it('has no patient links for the staff', () => {
+  it('links the front desk to the patients, and not to the patient area', () => {
     renderMenu()
 
+    expect(screen.getByRole('link', { name: 'Pacientes' })).toHaveAttribute(
+      'href',
+      '/es/front-desk/patients',
+    )
     expect(screen.queryByRole('link', { name: 'Mi perfil' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Agendar cita' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Mis citas' })).not.toBeInTheDocument()
   })
 
   it('signs out and goes to the home page', async () => {

@@ -107,7 +107,6 @@ test('Escape closes the cancel dialog and keeps the appointment', async ({ page 
 
 test('the patient moves an appointment to another time of the same day', async ({
   page,
-  browserName,
 }, testInfo) => {
   await newPatient(page)
   await bookAppointment(page, appointmentDay(testInfo, 3))

@@ -8,6 +8,8 @@ export const pageParam = (value: string | string[] | undefined) =>
 type PaginationProps = {
   // The page without ?page=, e.g. "/es/appointments"
   path: string
+  // The rest of the query, kept on every page, e.g. { search: 'ortega' }
+  query?: Record<string, string>
   // Names the navigation for screen readers: "Páginas de tus citas anteriores"
   label: string
   page: number
@@ -23,6 +25,7 @@ type PaginationProps = {
 // their place in the history. Nothing when everything fits on one page
 export function Pagination({
   path,
+  query,
   label,
   page,
   pageSize,
@@ -34,7 +37,12 @@ export function Pagination({
   const pages = Math.max(1, Math.ceil(total / pageSize))
   if (pages === 1) return null
 
-  const href = (to: number) => (to === 1 ? path : `${path}?page=${to}`)
+  // The first page has no ?page=, so its address is the same as the page without it
+  const href = (to: number) => {
+    const params = new URLSearchParams(query)
+    if (to > 1) params.set('page', String(to))
+    return params.size > 0 ? `${path}?${params}` : path
+  }
   const link = buttonVariants({ variant: 'secondary', size: 'sm' })
 
   return (

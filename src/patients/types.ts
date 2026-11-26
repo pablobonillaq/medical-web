@@ -18,6 +18,15 @@ export type Patient = {
   updatedAt: string
 }
 
+// One page of GET /patients, the front desk's search, sorted by last name. hasAccount: whether
+// the patient signed up, or the front desk registered them without an account
+export type PatientPage = {
+  patients: (Patient & { hasAccount: boolean })[]
+  page: number
+  pageSize: number
+  total: number
+}
+
 // What was done with the record (medical-api, AuditAction and AuditResource)
 export type AccessAction = 'read' | 'create' | 'update' | 'denied'
 export type AccessResource = 'medical_history' | 'clinical_note' | 'attachment'

@@ -13,6 +13,13 @@ const patient = {
   email: 'paciente@test.com',
   role: 'patient',
 }
+
+const employee = {
+  id: '2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f',
+  email: 'recepcion@clinica.test',
+  role: 'employee',
+}
+
 const PASSWORD = '12345678'
 
 // The clinic's active services, as GET /services lists them (sorted by name)
@@ -131,7 +138,10 @@ const freeSlots = (doctorId, serviceId, date) => {
 }
 
 // The accounts, by email. Patients who sign up in the tests are added here, in memory only
-const accounts = new Map([[patient.email, { user: patient, password: PASSWORD }]])
+const accounts = new Map([
+  [patient.email, { user: patient, password: PASSWORD }],
+  [employee.email, { user: employee, password: PASSWORD }],
+])
 
 // Each patient's profile, by the id of their account, as GET /patients/me answers it
 const profile = (user, data) => ({
@@ -157,6 +167,14 @@ const profiles = new Map([
       emailRemindersOptIn: true,
     }),
   ],
+  // Patients the front desk registered, without an account: by the id of their profile
+  ...[
+    { firstName: 'Ramón', lastName: 'Ortega Salas', birthDate: '1958-03-14', phone: '5587654321' },
+    { firstName: 'Elena', lastName: 'Quiroga', birthDate: '2015-09-02', phone: '5544332211' },
+  ].map((data) => {
+    const walkIn = profile({ email: null }, data)
+    return [walkIn.id, walkIn]
+  }),
 ])
 
 // A token shaped like the API's, valid for an hour. The signature is fake: nothing checks it
@@ -243,6 +261,45 @@ const routes = {
     if (!user) return { status: 401, body: { error: 'Authentication required' } }
     if (user.role !== 'patient') return { status: 403, body: { error: 'Forbidden' } }
     return { status: 200, body: { patient: profiles.get(user.id) } }
+  },
+
+  // The front desk looks patients up by name or phone, as the real API does: every word in the
+  // first name or the last name (ignoring case), or at least 4 digits of the phone. Sorted by
+  // last name
+  'GET /patients': (request) => {
+    const user = sessionUser(request)
+    if (!user) return { status: 401, body: { error: 'Authentication required' } }
+    if (!['employee', 'admin'].includes(user.role)) {
+      return { status: 403, body: { error: 'Forbidden' } }
+    }
+    const query = new URL(request.url, 'http://localhost').searchParams
+    const search = query.get('search')?.trim() ?? ''
+    if (search.length === 1) {
+      return { status: 400, body: { error: 'search must be at least 2 characters' } }
+    }
+    const page = Number(query.get('page') ?? 1)
+    const pageSize = Number(query.get('pageSize') ?? 20)
+    const words = search.toLowerCase().split(/\s+/).filter(Boolean)
+    const digits = search.replace(/\D/g, '')
+    const found = [...profiles.values()]
+      .filter(
+        ({ firstName, lastName, phone }) =>
+          words.every((word) =>
+            [firstName, lastName].some((name) => name.toLowerCase().includes(word)),
+          ) ||
+          (digits.length >= 4 && phone.includes(digits)),
+      )
+      .sort((a, b) => `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`))
+      .map((match) => ({ ...match, hasAccount: match.email !== null }))
+    return {
+      status: 200,
+      body: {
+        patients: found.slice((page - 1) * pageSize, page * pageSize),
+        page,
+        pageSize,
+        total: found.length,
+      },
+    }
   },
 
   // Who opened the record: a few accesses for the fictitious account, none for the patients

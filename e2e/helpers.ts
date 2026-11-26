@@ -32,8 +32,9 @@ export const expectNoAccessibilityViolations = async (page: Page) => {
   expect(problems).toEqual([])
 }
 
-// The fictitious account the fake API accepts (scripts/fake-api.mjs)
+// The fictitious accounts the fake API accepts (scripts/fake-api.mjs)
 export const PATIENT = { email: 'paciente@test.com', password: '12345678' }
+export const EMPLOYEE = { email: 'recepcion@clinica.test', password: '12345678' }
 
 // Fills in and sends the sign-in form of the page that is open
 export const signIn = async (page: Page, email = PATIENT.email, password = PATIENT.password) => {

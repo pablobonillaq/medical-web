@@ -17,8 +17,8 @@ type AccountMenuProps = {
   labels: Dictionary['account']
 }
 
-// Who is signed in, with which role, links to their account (and profile, for patients) and the
-// button to sign out
+// Who is signed in, with which role, links to their account and their area (the profile and
+// appointments of patients, the patients of the front desk) and the button to sign out
 export function AccountMenu({ user, locale, labels }: AccountMenuProps) {
   const dispatch = useAppDispatch()
   const router = useRouter()
@@ -65,6 +65,15 @@ export function AccountMenu({ user, locale, labels }: AccountMenuProps) {
             {labels.myAppointments}
           </Link>
         </>
+      )}
+      {/* The front desk area */}
+      {user.role === 'employee' && (
+        <Link
+          href={`/${locale}/front-desk/patients`}
+          className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+        >
+          {labels.patients}
+        </Link>
       )}
       <Button
         variant="secondary"

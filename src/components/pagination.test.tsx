@@ -38,6 +38,31 @@ describe('Pagination', () => {
     expect(screen.getByRole('link', { name: 'Más antiguas' })).toBeInTheDocument()
   })
 
+  it('keeps the rest of the query on every page', () => {
+    render(
+      <Pagination
+        path="/es/front-desk/patients"
+        query={{ search: 'ortega salas' }}
+        label="Páginas de pacientes"
+        page={2}
+        pageSize={20}
+        total={60}
+        previous="Anteriores"
+        next="Siguientes"
+        pageOf="Página {page} de {pages}"
+      />,
+    )
+
+    expect(screen.getByRole('link', { name: 'Anteriores' })).toHaveAttribute(
+      'href',
+      '/es/front-desk/patients?search=ortega+salas',
+    )
+    expect(screen.getByRole('link', { name: 'Siguientes' })).toHaveAttribute(
+      'href',
+      '/es/front-desk/patients?search=ortega+salas&page=3',
+    )
+  })
+
   it('shows nothing when everything fits on one page', () => {
     const { container } = pagination(1, 10)
 
